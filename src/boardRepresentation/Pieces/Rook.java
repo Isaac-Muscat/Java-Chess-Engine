@@ -4,7 +4,7 @@ import java.util.*;
 
 import boardRepresentation.Board;
 import boardRepresentation.Color;
-import boardRepresentation.Moves.Move;
+import boardRepresentation.Moves.*;
 import utilities.BitboardUtils;
 
 public class Rook extends Piece{
@@ -48,12 +48,13 @@ public class Rook extends Piece{
 			
 			long captures = board.getOpponentOccupied(color)&movesBitboard;
 			long nonCaptures = ~board.getOccupied()&movesBitboard;
+			moves.addAll(genCaptures(captures, rook, board.getPieces()));
+			moves.addAll(genNonCaptures(nonCaptures, rook));
 			
 			long temp = nextPieces;
 			nextPieces &= nextPieces-1;
 			rook = temp&~nextPieces;
 		}
-		
 		
 		return moves;
 	}
@@ -68,7 +69,7 @@ public class Rook extends Piece{
 	public static long initBitboard(Color color) {
 		long bitboard=0;
 		if(color==Color.WHITE) {
-			bitboard|=BitboardUtils.SQUARE[56]|BitboardUtils.SQUARE[63];
+			bitboard|= BitboardUtils.SQUARE[56]|BitboardUtils.SQUARE[63];
 			
 		} else {
 			bitboard|=BitboardUtils.SQUARE[0]|BitboardUtils.SQUARE[7];

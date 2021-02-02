@@ -1,6 +1,8 @@
 package boardRepresentation.Pieces;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import boardRepresentation.Board;
 import boardRepresentation.Color;
@@ -34,8 +36,35 @@ public class Queen extends Piece{
 
 	@Override
 	public Collection<Move> genPseudoMoves(Board board) {
-		// TODO Auto-generated method stub
-		return null;
+		List<Move> moves = new ArrayList<>();
+		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
+		long queen = bitboard&~nextPieces;			//Bitboard of selected queen
+		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
+		while(queen!=0) {							//Basically loops over every queen (one color)
+			
+			long m = BitboardUtils.getDiagonalMask(Long.numberOfLeadingZeros(queen));
+			long movesBitboard = m&(((o&m)-2*queen) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(queen)));
+			
+			m = BitboardUtils.getAntiDiagonalMask(Long.numberOfLeadingZeros(queen));
+			movesBitboard |= m&(((o&m)-2*queen) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(queen)));
+			
+			m = BitboardUtils.getRankMask(Long.numberOfTrailingZeros(queen));
+			movesBitboard |= m&(((o&m)-2*queen) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(queen)));
+			
+			m = BitboardUtils.getFileMask(Long.numberOfLeadingZeros(queen));
+			movesBitboard |= m&(((o&m)-2*queen) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(queen)));
+			
+			long captures = board.getOpponentOccupied(color)&movesBitboard;
+			long nonCaptures = ~board.getOccupied()&movesBitboard;
+			moves.addAll(genCaptures(captures, queen, board.getPieces()));
+			moves.addAll(genNonCaptures(nonCaptures, queen));
+			
+			long temp = nextPieces;
+			nextPieces &= nextPieces-1;
+			queen = temp&~nextPieces;
+		}
+		
+		return moves;
 	}
 	
 	public static Queen getQueens(Color color) {

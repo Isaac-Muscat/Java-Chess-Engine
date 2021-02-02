@@ -1,6 +1,8 @@
 package boardRepresentation.Pieces;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import utilities.BitboardUtils;
 import boardRepresentation.Board;
@@ -34,8 +36,28 @@ public class Bishop extends Piece{
 
 	@Override
 	public Collection<Move> genPseudoMoves(Board board) {
-		// TODO Auto-generated method stub
-		return null;
+		List<Move> moves = new ArrayList<>();
+		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
+		long bishop = bitboard&~nextPieces;			//Bitboard of selected bishop
+		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
+		while(bishop!=0) {							//Basically loops over every bishop (one color)
+			
+			long m = BitboardUtils.getDiagonalMask(Long.numberOfLeadingZeros(bishop));
+			long movesBitboard = m&(((o&m)-2*bishop) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(bishop)));
+			m = BitboardUtils.getAntiDiagonalMask(Long.numberOfLeadingZeros(bishop));
+			movesBitboard |= m&(((o&m)-2*bishop) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(bishop)));
+			
+			long captures = board.getOpponentOccupied(color)&movesBitboard;
+			long nonCaptures = ~board.getOccupied()&movesBitboard;
+			moves.addAll(genCaptures(captures, bishop, board.getPieces()));
+			moves.addAll(genNonCaptures(nonCaptures, bishop));
+			
+			long temp = nextPieces;
+			nextPieces &= nextPieces-1;
+			bishop = temp&~nextPieces;
+		}
+		
+		return moves;
 	}
 	
 	public static Bishop getBishops(Color color) {

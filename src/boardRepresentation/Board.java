@@ -1,6 +1,7 @@
 package boardRepresentation;
 
 import boardRepresentation.Pieces.PieceEnum;
+import utilities.BitboardUtils;
 import utilities.File;
 import boardRepresentation.Pieces.*;
 
@@ -9,6 +10,7 @@ public class Board {
 	private File enPassantFile;
 	private final Piece[] pieces;
 	private long blackOccupied, whiteOccupied, occupied;
+	private BoardState boardState;
 	
 	public static class Builder {
 		private Piece[] pieces = new Piece[PieceEnum.values().length];
@@ -16,6 +18,7 @@ public class Board {
 		private long whiteOccupied=0;
 		private long occupied=0;
 		private Color sideToMove = Color.WHITE;
+		private BoardState boardState=BoardState.NORMAL;
 		
 		public Builder() {
 		}
@@ -57,10 +60,30 @@ public class Board {
 	}
 	
 	public void updateOccupied() {
-		
+		this.occupied = blackOccupied | whiteOccupied;
 	}
 	
-	public Piece getPieces(PieceEnum pieceType) {
+	public void updateColorOccupied() {
+		this.whiteOccupied = 0;
+		this.blackOccupied = 0;
+		for(Piece piece: pieces) {
+			if(piece.getColor()==Color.WHITE) {
+				this.whiteOccupied |= piece.getBitboard();
+			} else {
+				this.blackOccupied |= piece.getBitboard();
+			}
+		}
+	}
+	
+	public Piece[] getPieces() {
+		return this.pieces;
+	}
+	
+	public File getEPFile() {
+		return enPassantFile;
+	}
+	
+	public Piece getPiece(PieceEnum pieceType) {
 		return pieces[pieceType.getIndex()];
 	}
 	

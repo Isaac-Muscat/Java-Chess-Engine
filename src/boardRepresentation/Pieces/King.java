@@ -1,6 +1,8 @@
 package boardRepresentation.Pieces;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import boardRepresentation.Board;
 import boardRepresentation.Color;
@@ -37,8 +39,25 @@ public class King extends Piece{
 
 	@Override
 	public Collection<Move> genPseudoMoves(Board board) {
-		// TODO Auto-generated method stub
-		return null;
+		List<Move> moves = new ArrayList<>();
+		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
+		long king = bitboard&~nextPieces;			//Bitboard of selected king
+		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
+		while(king!=0) {							//Basically loops over every king (one color)
+			
+			long m = BitboardUtils.getKingMask(Long.numberOfLeadingZeros(king));
+			
+			long captures = board.getOpponentOccupied(color)&m;
+			long nonCaptures = ~o&m&~board.getWhiteOccupied();
+			moves.addAll(genCaptures(captures, king, board.getPieces()));
+			moves.addAll(genNonCaptures(nonCaptures, king));
+			
+			long temp = nextPieces;
+			nextPieces &= nextPieces-1;
+			king = temp&~nextPieces;
+		}
+		
+		return moves;
 	}
 	
 	public static King getKings(Color color) {

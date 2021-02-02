@@ -14,9 +14,12 @@ import boardRepresentation.Pieces.PieceEnum;
 public class Main {
 
 	public static void main(String[] args) {
+		
 		Board board = new Board.Builder().init().build();
-		Piece tP = board.getPieces(PieceEnum.WR);
-		Collection<Move> moves = tP.genPseudoMoves(board);
+		Piece tP = board.getPiece(PieceEnum.BP);
+		ArrayList<Move> moves = (ArrayList<Move>) tP.genPseudoMoves(board);
+		System.out.println(moves.size());
+		
 		
 	}
 

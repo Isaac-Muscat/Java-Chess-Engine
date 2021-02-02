@@ -8,4 +8,8 @@ public enum Color {
 	private Color(int direction) {
 		this.direction = direction;
 	}
+	
+	public int getDirection() {
+		return this.direction;
+	}
 }

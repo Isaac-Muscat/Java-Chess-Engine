@@ -21,6 +21,14 @@ public enum File {
 		this.value = value;
 	}
 	
+	public static File returnFileFromIndex(int index) {
+		for(File file: File.values()) {
+			if(file.getValue() == index%8) return file;
+		}
+		new Exception("ERROR");
+		return FILE_A;
+	}
+	
 	public static long getFile(File file) {
 		return FILES[file.getValue()];
 	}

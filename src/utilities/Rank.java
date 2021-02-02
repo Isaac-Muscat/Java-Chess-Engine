@@ -3,14 +3,14 @@ package utilities;
 import utilities.BitboardUtils;
 
 public enum Rank {
-	RANK_1(0),
-	RANK_2(1),
-	RANK_3(2),
-	RANK_4(3),
-	RANK_5(4),
-	RANK_6(5),
-	RANK_7(6),
-	RANK_8(7);
+	RANK_1(7),
+	RANK_2(6),
+	RANK_3(5),
+	RANK_4(4),
+	RANK_5(3),
+	RANK_6(2),
+	RANK_7(1),
+	RANK_8(0);
 	
 	public static final int NUM_RANKS = 8;
 	private final int value;
@@ -23,8 +23,16 @@ public enum Rank {
 		return value;
 	}
 	
+	public static Rank returnRankFromIndex(int index) {
+		for(Rank rank: Rank.values()) {
+			if(rank.getValue() == index/8) return rank;
+		}
+		new Exception("ERROR");
+		return RANK_1;
+	}
+	
 	public static long getRank(Rank rank) {
-		return RANKS[rank.getValue()];
+		return RANKS[7-rank.getValue()];
 	}
 	
 	private static long[] createRanks() {
