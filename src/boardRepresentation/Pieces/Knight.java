@@ -73,4 +73,20 @@ public class Knight extends Piece{
 		}
 		return bitboard;
 	}
+
+	@Override
+	public long genAttackSet(Board board) {
+		long movesBitboard = 0;
+		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
+		long knight = bitboard&~nextPieces;			//Bitboard of selected knight
+		while(knight!=0) {							//Basically loops over every knight (one color)
+			
+			movesBitboard |= BitboardUtils.getKnightMask(Long.numberOfLeadingZeros(knight));
+			
+			long temp = nextPieces;
+			nextPieces &= nextPieces-1;
+			knight = temp&~nextPieces;
+		}
+		return movesBitboard;
+	}
 }

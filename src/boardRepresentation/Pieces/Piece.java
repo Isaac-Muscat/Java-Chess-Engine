@@ -43,9 +43,14 @@ public abstract class Piece {
 	}
 	
 	public abstract Collection<Move> genPseudoMoves(Board board);
+	public abstract long genAttackSet(Board board);
 	
 	public long getBitboard() {
 		return bitboard;
+	}
+	
+	public void setBitboard(long bitboard) {
+		this.bitboard = bitboard;
 	}
 	public Color getColor() {
 		return color;
@@ -54,6 +59,19 @@ public abstract class Piece {
 		return pieceType;
 	}
 	
+	public Collection<Move> genLegalMoves(Board board){
+		ArrayList<Move> moves = (ArrayList<Move>)genPseudoMoves(board);
+		for(int i = moves.size()-1;i>=0;i--) {
+			moves.get(i).makeMove(board);
+			long attacks = board.getOpponentAttackSet(color);
+			long kingBitboard = King.getKings(color).getBitboard();
+			moves.get(i).unmakeMove(board);
+			if((attacks&kingBitboard)!=0) {
+				moves.remove(i);
+			}
+		}
+		return moves;
+	}
 	protected Collection<Move> genNonCaptures(long nonCaptures, long piece) {
 		List<Move> moves = new ArrayList<>();
 		

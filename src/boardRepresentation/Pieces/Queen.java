@@ -83,4 +83,32 @@ public class Queen extends Piece{
 		}
 		return bitboard;
 	}
+
+	@Override
+	public long genAttackSet(Board board) {
+		long movesBitboard = 0;
+		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
+		long queen = bitboard&~nextPieces;			//Bitboard of selected queen
+		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
+		while(queen!=0) {							//Basically loops over every queen (one color)
+			
+			long m = BitboardUtils.getDiagonalMask(Long.numberOfLeadingZeros(queen));
+			movesBitboard |= m&(((o&m)-2*queen) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(queen)));
+			
+			m = BitboardUtils.getAntiDiagonalMask(Long.numberOfLeadingZeros(queen));
+			movesBitboard |= m&(((o&m)-2*queen) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(queen)));
+			
+			m = BitboardUtils.getRankMask(Long.numberOfTrailingZeros(queen));
+			movesBitboard |= m&(((o&m)-2*queen) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(queen)));
+			
+			m = BitboardUtils.getFileMask(Long.numberOfLeadingZeros(queen));
+			movesBitboard |= m&(((o&m)-2*queen) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(queen)));
+			
+			
+			long temp = nextPieces;
+			nextPieces &= nextPieces-1;
+			queen = temp&~nextPieces;
+		}
+		return movesBitboard;
+	}
 }

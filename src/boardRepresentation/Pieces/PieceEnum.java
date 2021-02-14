@@ -1,26 +1,32 @@
 package boardRepresentation.Pieces;
 
 public enum PieceEnum {
-	WP(0),
-	WB(1),
-	WN(2),
-	WR(3),
-	WQ(4),
-	WK(5),
-	BP(6),
-	BB(7),
-	BN(8),
-	BR(9),
-	BQ(10),
-	BK(11);
+	WP(0, "P"),
+	WB(1, "B"),
+	WN(2, "N"),
+	WR(3, "R"),
+	WQ(4, "Q"),
+	WK(5, "K"),
+	BP(6, "p"),
+	BB(7, "b"),
+	BN(8, "n"),
+	BR(9, "r"),
+	BQ(10, "q"),
+	BK(11, "k");
 	
+	public static final int BLACK_INDEX_START = 6;
 	private final int index;
+	private final String symbol;
 	
-	private PieceEnum(int index) {
+	private PieceEnum(int index, String symbol) {
 		this.index = index;
+		this.symbol = symbol;
 	}
 	
 	public int getIndex() {
 		return this.index;
+	}
+	public String getSymbol() {
+		return this.symbol;
 	}
 }

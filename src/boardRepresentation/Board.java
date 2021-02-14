@@ -3,6 +3,11 @@ package boardRepresentation;
 import boardRepresentation.Pieces.PieceEnum;
 import utilities.BitboardUtils;
 import utilities.File;
+
+import java.util.ArrayList;
+
+import boardRepresentation.Moves.Move;
+import boardRepresentation.Moves.NonCapture;
 import boardRepresentation.Pieces.*;
 
 public class Board {
@@ -59,20 +64,76 @@ public class Board {
 		occupied = builder.occupied;
 	}
 	
+	public boolean isInCheck() {
+		if((King.getKings(sideToMove).getBitboard()&getOpponentAttackSet(sideToMove))!=0) {
+			return true;
+		}
+		return false;
+	}
+	
+	public BoardState getBoardState(ArrayList<Move> moves) {
+		if(isInCheck()&&moves.size()==0)return BoardState;
+		return false;
+	}
+	
+	public boolean isInStalemate(ArrayList<Move> moves) {
+		if(!isInCheck()&&moves.size()==0)return true;
+		return false;
+	}
+	
+	public ArrayList<Move> generateLegalMoves(){
+		ArrayList<Move> moves = new ArrayList<Move>();
+		int start = sideToMove.getStartIndex();
+		for(int i = start;i<start+6;i++) {
+			moves.addAll(pieces[i].genLegalMoves(this));
+		}
+		return moves;
+	}
+	
+	public void updateSideToMove() {
+		this.sideToMove = sideToMove.getOther();
+	}
+	
+	public Color getSideToMove() {
+		return this.sideToMove;
+	}
+	
 	public void updateOccupied() {
 		this.occupied = blackOccupied | whiteOccupied;
+	}
+	public void updateColorOccupied(Color color) {
+		if(color==Color.BLACK) {
+			this.blackOccupied = 0;
+			for(int i = PieceEnum.BLACK_INDEX_START;i<PieceEnum.BLACK_INDEX_START+6;i++) {
+				this.blackOccupied |= pieces[i].getBitboard();
+			}
+		}else {
+			this.whiteOccupied = 0;
+			for(int i = 0;i<PieceEnum.BLACK_INDEX_START;i++) {
+				this.whiteOccupied |= pieces[i].getBitboard();
+			}
+		}
 	}
 	
 	public void updateColorOccupied() {
 		this.whiteOccupied = 0;
-		this.blackOccupied = 0;
-		for(Piece piece: pieces) {
-			if(piece.getColor()==Color.WHITE) {
-				this.whiteOccupied |= piece.getBitboard();
-			} else {
-				this.blackOccupied |= piece.getBitboard();
-			}
+		for(int i = 0;i<PieceEnum.BLACK_INDEX_START;i++) {
+			this.whiteOccupied |= pieces[i].getBitboard();
 		}
+		this.blackOccupied = 0;
+		for(int i = PieceEnum.BLACK_INDEX_START;i<PieceEnum.BLACK_INDEX_START+6;i++) {
+			this.blackOccupied |= pieces[i].getBitboard();
+		}
+	}
+	
+	public long getOpponentAttackSet(Color color) {
+		long attackSet = 0;
+		int startIndex=0;
+		if(color==Color.WHITE)startIndex=PieceEnum.BLACK_INDEX_START;
+		for(int i=startIndex;i<startIndex+6;i++) {
+			attackSet|=pieces[i].genAttackSet(this);
+		}
+		return attackSet;
 	}
 	
 	public Piece[] getPieces() {
@@ -102,5 +163,36 @@ public class Board {
 	public long getOpponentOccupied(Color color) {
 		if(color==Color.WHITE) return blackOccupied;
 		return whiteOccupied;
+	}
+
+	public void print() {
+		String[] board = new String[64];
+		for(int i = 0;i<64;i++) {
+			board[i] = "-";
+		}
+		for(Piece piece: pieces) {
+			long bitboard = piece.getBitboard();
+			long otherPieces = bitboard&(bitboard-1);
+			long selected = bitboard&~otherPieces;
+			while(selected!=0) {
+				board[Long.numberOfLeadingZeros(selected)] = piece.getPieceEnum().getSymbol();
+				long temp = otherPieces;
+				otherPieces &= otherPieces-1;
+				selected = temp&~otherPieces;
+			}
+		}
+		for(int i = 0;i<64;i++) {
+			if((i+1)%8==0) {
+				System.out.println(board[i]);
+				continue;
+			}
+			System.out.print(board[i]);
+		}
+		System.out.println("\n");
+	}
+
+	public void setEP(File file) {
+		this.enPassantFile = file;
+		
 	}
 }

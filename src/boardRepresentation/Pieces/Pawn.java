@@ -11,6 +11,7 @@ import boardRepresentation.Moves.EnPassant;
 import boardRepresentation.Moves.Move;
 import boardRepresentation.Moves.NonCapture;
 import boardRepresentation.Moves.PawnPromotion;
+import boardRepresentation.Moves.PawnPromotionCapture;
 import utilities.BitboardUtils;
 import utilities.File;
 import utilities.Rank;
@@ -59,27 +60,33 @@ public class Pawn extends Piece {
 				long promotions = ((bitboard&Rank.getRank(Rank.RANK_7))<<8)&empty;
 				moves.addAll(genPromotions(promotions));
 				//gen en passant
-				long epLeft = (bitboard&Rank.getRank(Rank.RANK_5)<<9)&File.getFile(board.getEPFile());
-				long epRight = (bitboard&Rank.getRank(Rank.RANK_5)<<7)&File.getFile(board.getEPFile());
-				moves.addAll(genEP(epRight, epLeft, board));
+				File epFile = board.getEPFile();
+				if(epFile!=null) {
+					long epLeft = (bitboard&Rank.getRank(Rank.RANK_5)<<9)&File.getFile(epFile);
+					long epRight = (bitboard&Rank.getRank(Rank.RANK_5)<<7)&File.getFile(epFile);
+					moves.addAll(genEP(epRight, epLeft, board));
+				}
 				break;
 			case BLACK:
 				//gen single moves
-				singleUp = ((bitboard&~Rank.getRank(Rank.RANK_2))>>>8)&empty;
+				long singleUpB = ((bitboard&~Rank.getRank(Rank.RANK_2))>>>8)&empty;
 				//gen double moves
-				doubleUp = ((((bitboard&Rank.getRank(Rank.RANK_7))>>>8)&empty)>>>8)&empty;
-				moves.addAll(genNonCaptures(singleUp, doubleUp));
+				long doubleUpB = ((((bitboard&Rank.getRank(Rank.RANK_7))>>>8)&empty)>>>8)&empty;
+				moves.addAll(genNonCaptures(singleUpB, doubleUpB));
 				//gen captures
-				rightCaptures = ((bitboard&~File.getFile(File.FILE_H))>>>9)&~empty;
-				leftCaptures = ((bitboard&~File.getFile(File.FILE_A))>>>7)&~empty;
-				moves.addAll(genCaptures(rightCaptures, leftCaptures, board));
+				long rightCapturesB = ((bitboard&~File.getFile(File.FILE_H))>>>9)&~empty;
+				long leftCapturesB = ((bitboard&~File.getFile(File.FILE_A))>>>7)&~empty;
+				moves.addAll(genCaptures(rightCapturesB, leftCapturesB, board));
 				//gen promotions
-				promotions = ((bitboard&Rank.getRank(Rank.RANK_2))>>>8)&empty;
-				moves.addAll(genPromotions(promotions));
+				long promotionsB = ((bitboard&Rank.getRank(Rank.RANK_2))>>>8)&empty;
+				moves.addAll(genPromotions(promotionsB));
 				//gen en passant
-				epLeft = (bitboard&Rank.getRank(Rank.RANK_4)>>>7)&File.getFile(board.getEPFile());
-				epRight = (bitboard&Rank.getRank(Rank.RANK_4)>>>9)&File.getFile(board.getEPFile());
-				moves.addAll(genEP(epRight, epLeft, board));
+				File epFileB = board.getEPFile();
+				if(epFileB!=null) {
+					long epLeftB = (bitboard&Rank.getRank(Rank.RANK_4)>>>7)&File.getFile(epFileB);
+					long epRightB = (bitboard&Rank.getRank(Rank.RANK_4)>>>9)&File.getFile(epFileB);
+					moves.addAll(genEP(epRightB, epLeftB, board));
+				}
 				break;
 		}
 		
@@ -109,9 +116,10 @@ public class Pawn extends Piece {
 		while(moveBitboard!=0) {
 			int endPos = Long.numberOfLeadingZeros(moveBitboard);
 			int direction = color.getDirection();
-			moves.add(new PawnPromotion(this, endPos-direction*8, endPos));
-				
-			
+			moves.add(new PawnPromotion(this, endPos-direction*8, endPos, Queen.getQueens(color)));
+			moves.add(new PawnPromotion(this, endPos-direction*8, endPos, Knight.getKnights(color)));
+			moves.add(new PawnPromotion(this, endPos-direction*8, endPos, Rook.getRooks(color)));
+			moves.add(new PawnPromotion(this, endPos-direction*8, endPos, Bishop.getBishops(color)));
 			long temp = otherMoves;
 			otherMoves &= otherMoves-1;
 			moveBitboard = temp&~otherMoves;
@@ -131,6 +139,13 @@ public class Pawn extends Piece {
 			int direction = color.getDirection();
 			for(Piece p: board.getPieces()) {
 				if(p.getColor()!=this.color && 0!=(p.getBitboard()&moveBitboard)) {
+					if((moveBitboard&BitboardUtils.getRankMask(31*(1+direction)))!=0) {
+						moves.add(new PawnPromotionCapture(this, endPos-direction*8, endPos, Queen.getQueens(color), p));
+						moves.add(new PawnPromotionCapture(this, endPos-direction*8, endPos, Knight.getKnights(color), p));
+						moves.add(new PawnPromotionCapture(this, endPos-direction*8, endPos, Rook.getRooks(color), p));
+						moves.add(new PawnPromotionCapture(this, endPos-direction*8, endPos, Bishop.getBishops(color), p));
+						continue;
+					}
 					moves.add(new Capture(this, endPos-direction*(8+direction), endPos, p));
 				}
 			}
@@ -203,5 +218,19 @@ public class Pawn extends Piece {
 			bitboard|=Rank.getRank(Rank.RANK_7);
 		}
 		return bitboard;
+	}
+
+	@Override
+	public long genAttackSet(Board board) {
+		long movesBitboard = 0;
+		if(color==Color.WHITE) {
+			movesBitboard |= (bitboard&~File.getFile(File.FILE_H))<<7;
+			movesBitboard |= (bitboard&~File.getFile(File.FILE_A))<<9;
+		}else {
+			movesBitboard |= (bitboard&~File.getFile(File.FILE_H))>>>9;
+			movesBitboard |= (bitboard&~File.getFile(File.FILE_A))>>>7;
+		}
+		
+		return movesBitboard;
 	}
 }

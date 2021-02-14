@@ -2,24 +2,31 @@ package boardRepresentation.Moves;
 
 import boardRepresentation.Board;
 import boardRepresentation.Pieces.Piece;
+import utilities.BitboardUtils;
 
 public class NonCapture extends Move{
 
 	public NonCapture(Piece pieceToMove, int startPos, int endPos) {
 		super(pieceToMove, startPos, endPos);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
-	public Board makeMove(Board board) {
-		// TODO Auto-generated method stub
-		return null;
+	public void makeMove(Board board) {
+		long newBitboard = (pieceToMove.getBitboard()&~(BitboardUtils.SQUARE[0]>>>startPos))|(BitboardUtils.SQUARE[0]>>>endPos);
+		pieceToMove.setBitboard(newBitboard);
+		board.updateColorOccupied(pieceToMove.getColor());
+		board.updateOccupied();
+		
 	}
 
 	@Override
-	public Board unmakeMove(Board board) {
-		// TODO Auto-generated method stub
-		return null;
+	public void unmakeMove(Board board) {
+		long newBitboard = (pieceToMove.getBitboard()&~(BitboardUtils.SQUARE[0]>>>endPos))
+				|(BitboardUtils.SQUARE[0]>>>startPos);
+		pieceToMove.setBitboard(newBitboard);
+		board.updateColorOccupied(pieceToMove.getColor());
+		board.updateOccupied();
 	}
 
 }
+ 

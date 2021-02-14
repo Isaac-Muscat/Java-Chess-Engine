@@ -2,24 +2,32 @@ package boardRepresentation.Moves;
 
 import boardRepresentation.Board;
 import boardRepresentation.Pieces.Piece;
+import utilities.BitboardUtils;
 
 public class PawnPromotion extends Move {
-
-	public PawnPromotion(Piece pieceToMove, int startPos, int endPos) {
+	private Piece promotedPiece;
+	public PawnPromotion(Piece pieceToMove, int startPos, int endPos, Piece promotedPiece) {
 		super(pieceToMove, startPos, endPos);
-		// TODO Auto-generated constructor stub
+		this.promotedPiece = promotedPiece;
 	}
 
 	@Override
-	public Board makeMove(Board board) {
-		// TODO Auto-generated method stub
-		return null;
+	public void makeMove(Board board) {
+		long newBitboard = pieceToMove.getBitboard()&~(BitboardUtils.SQUARE[0]>>>startPos);
+		pieceToMove.setBitboard(newBitboard);
+		promotedPiece.setBitboard(promotedPiece.getBitboard()|(BitboardUtils.SQUARE[0]>>>endPos));
+		board.updateColorOccupied(pieceToMove.getColor());
+		board.updateOccupied();
+		
 	}
 
 	@Override
-	public Board unmakeMove(Board board) {
-		// TODO Auto-generated method stub
-		return null;
+	public void unmakeMove(Board board) {
+		long newBitboard = pieceToMove.getBitboard()|(BitboardUtils.SQUARE[0]>>>startPos);
+		pieceToMove.setBitboard(newBitboard);
+		promotedPiece.setBitboard(promotedPiece.getBitboard()&~(BitboardUtils.SQUARE[0]>>>endPos));
+		board.updateColorOccupied(pieceToMove.getColor());
+		board.updateOccupied();
 	}
 
 }

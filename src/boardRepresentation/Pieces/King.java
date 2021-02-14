@@ -6,7 +6,10 @@ import java.util.List;
 
 import boardRepresentation.Board;
 import boardRepresentation.Color;
+import boardRepresentation.Moves.CastleKingside;
+import boardRepresentation.Moves.CastleQueenside;
 import boardRepresentation.Moves.Move;
+import boardRepresentation.Moves.PawnPromotion;
 import utilities.BitboardUtils;
 
 public class King extends Piece{
@@ -18,9 +21,8 @@ public class King extends Piece{
 			.setBitboard(initBitboard(Color.WHITE))
 			.setColor(Color.WHITE)
 			.setPieceEnum(PieceEnum.WK).build();
-	private boolean firstMove = true;
-	private boolean qCastleRight = true;
-	private boolean kCastleRight = true;
+	private boolean qCastle = true;
+	private boolean kCastle = true;
 	
 	private static class Builder extends Piece.Builder<Builder> {
 		@Override
@@ -40,24 +42,43 @@ public class King extends Piece{
 	@Override
 	public Collection<Move> genPseudoMoves(Board board) {
 		List<Move> moves = new ArrayList<>();
-		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
-		long king = bitboard&~nextPieces;			//Bitboard of selected king
 		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
-		while(king!=0) {							//Basically loops over every king (one color)
 			
-			long m = BitboardUtils.getKingMask(Long.numberOfLeadingZeros(king));
+		long m = BitboardUtils.getKingMask(Long.numberOfLeadingZeros(bitboard));
 			
-			long captures = board.getOpponentOccupied(color)&m;
-			long nonCaptures = ~o&m&~board.getWhiteOccupied();
-			moves.addAll(genCaptures(captures, king, board.getPieces()));
-			moves.addAll(genNonCaptures(nonCaptures, king));
-			
-			long temp = nextPieces;
-			nextPieces &= nextPieces-1;
-			king = temp&~nextPieces;
+		long captures = board.getOpponentOccupied(color)&m;
+		long nonCaptures = ~o&m&~board.getWhiteOccupied();
+		moves.addAll(genCaptures(captures, bitboard, board.getPieces()));
+		moves.addAll(genNonCaptures(nonCaptures, bitboard));
+		moves.addAll(genCastles(board));
+		return moves;
+	}
+	
+	private Collection<Move> genCastles(Board board){
+		List<Move> moves = new ArrayList<>();
+		long attacks = board.getOpponentAttackSet(color);
+		long o = board.getOccupied()&~bitboard;
+		long dir = color.getDirection();
+		if(kCastle&&((o|attacks)&(7L<<29+dir*28))==0) {
+			moves.add(new CastleKingside(this));
+		} else if(qCastle&&((o|attacks)&(15L<<31+dir*28))==0) {
+			moves.add(new CastleQueenside(this));
 		}
 		
+		
 		return moves;
+	}
+	public boolean getCastleKingside() {
+		return this.kCastle;
+	}
+	public boolean getCastleQueenside() {
+		return this.qCastle;
+	}
+	public void setCastleKingside(boolean kCastle) {
+		this.kCastle = kCastle;
+	}
+	public void setCastleQueenside(boolean qCastle) {
+		this.qCastle = qCastle;
 	}
 	
 	public static King getKings(Color color) {
@@ -75,5 +96,10 @@ public class King extends Piece{
 			bitboard|=BitboardUtils.SQUARE[4];
 		}
 		return bitboard;
+	}
+
+	@Override
+	public long genAttackSet(Board board) {
+		return BitboardUtils.getKingMask(Long.numberOfLeadingZeros(bitboard));
 	}
 }

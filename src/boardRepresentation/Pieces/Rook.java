@@ -16,7 +16,6 @@ public class Rook extends Piece{
 			.setBitboard(initBitboard(Color.WHITE))
 			.setColor(Color.WHITE)
 			.setPieceEnum(PieceEnum.WR).build();
-	private boolean firstMove = true;
 	
 	private static class Builder extends Piece.Builder<Builder> {
 		@Override
@@ -75,5 +74,26 @@ public class Rook extends Piece{
 			bitboard|=BitboardUtils.SQUARE[0]|BitboardUtils.SQUARE[7];
 		}
 		return bitboard;
+	}
+
+	@Override
+	public long genAttackSet(Board board) {
+		long movesBitboard = 0;
+		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
+		long rook = bitboard&~nextPieces;			//Bitboard of selected rook
+		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
+		while(rook!=0) {							//Basically loops over every rook (one color)
+			
+			long m = BitboardUtils.getRankMask(Long.numberOfTrailingZeros(rook));
+			movesBitboard |= m&(((o&m)-2*rook) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(rook)));
+			m = BitboardUtils.getFileMask(Long.numberOfLeadingZeros(rook));
+			movesBitboard |= m&(((o&m)-2*rook) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(rook)));
+			
+			
+			long temp = nextPieces;
+			nextPieces &= nextPieces-1;
+			rook = temp&~nextPieces;
+		}
+		return movesBitboard;
 	}
 }

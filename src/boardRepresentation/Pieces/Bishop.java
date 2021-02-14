@@ -77,4 +77,24 @@ public class Bishop extends Piece{
 		return bitboard;
 	}
 
+	@Override
+	public long genAttackSet(Board board) {
+		long movesBitboard = 0;
+		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
+		long bishop = bitboard&~nextPieces;			//Bitboard of selected bishop
+		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
+		while(bishop!=0) {							//Basically loops over every bishop (one color)
+			
+			long m = BitboardUtils.getDiagonalMask(Long.numberOfLeadingZeros(bishop));
+			movesBitboard |= m&(((o&m)-2*bishop) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(bishop)));
+			m = BitboardUtils.getAntiDiagonalMask(Long.numberOfLeadingZeros(bishop));
+			movesBitboard |= m&(((o&m)-2*bishop) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(bishop)));
+			
+			long temp = nextPieces;
+			nextPieces &= nextPieces-1;
+			bishop = temp&~nextPieces;
+		}
+		return movesBitboard;
+	}
+
 }
