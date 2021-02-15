@@ -5,14 +5,13 @@ import boardRepresentation.Color;
 import boardRepresentation.Pieces.Pawn;
 import boardRepresentation.Pieces.Piece;
 import utilities.BitboardUtils;
-import utilities.File;
 
 public class EnPassant extends Move{
 	public EnPassant(Piece pieceToMove, int startPos, int endPos) {
+		
 		super(pieceToMove, startPos, endPos);
+		System.out.println(startPos);
 	}
-
-	private File enPassantFile;
 	
 	@Override
 	public void makeMove(Board board) {

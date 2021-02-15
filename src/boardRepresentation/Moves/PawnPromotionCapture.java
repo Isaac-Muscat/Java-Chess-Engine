@@ -14,11 +14,13 @@ public class PawnPromotionCapture extends Move{
 
 	@Override
 	public void makeMove(Board board) {
+		enPassantFile = board.getEPFile();
 		long end = BitboardUtils.SQUARE[0]>>>endPos;
 		long start = BitboardUtils.SQUARE[0]>>>startPos;
 		pieceToMove.setBitboard(pieceToMove.getBitboard()&~start);
 		promotedPiece.setBitboard(promotedPiece.getBitboard()|end);
 		capturedPiece.setBitboard(capturedPiece.getBitboard()&~end);
+		board.setEP(null);
 		board.updateColorOccupied(pieceToMove.getColor());
 		board.updateOccupied();
 		
@@ -31,6 +33,7 @@ public class PawnPromotionCapture extends Move{
 		pieceToMove.setBitboard(pieceToMove.getBitboard()|start);
 		promotedPiece.setBitboard(promotedPiece.getBitboard()&~end);
 		capturedPiece.setBitboard(capturedPiece.getBitboard()|end);
+		board.setEP(enPassantFile);
 		board.updateColorOccupied(pieceToMove.getColor());
 		board.updateOccupied();
 	}

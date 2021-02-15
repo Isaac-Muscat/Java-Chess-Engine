@@ -13,9 +13,11 @@ public class PawnPromotion extends Move {
 
 	@Override
 	public void makeMove(Board board) {
+		enPassantFile = board.getEPFile();
 		long newBitboard = pieceToMove.getBitboard()&~(BitboardUtils.SQUARE[0]>>>startPos);
 		pieceToMove.setBitboard(newBitboard);
 		promotedPiece.setBitboard(promotedPiece.getBitboard()|(BitboardUtils.SQUARE[0]>>>endPos));
+		board.setEP(null);
 		board.updateColorOccupied(pieceToMove.getColor());
 		board.updateOccupied();
 		
@@ -26,6 +28,7 @@ public class PawnPromotion extends Move {
 		long newBitboard = pieceToMove.getBitboard()|(BitboardUtils.SQUARE[0]>>>startPos);
 		pieceToMove.setBitboard(newBitboard);
 		promotedPiece.setBitboard(promotedPiece.getBitboard()&~(BitboardUtils.SQUARE[0]>>>endPos));
+		board.setEP(enPassantFile);
 		board.updateColorOccupied(pieceToMove.getColor());
 		board.updateOccupied();
 	}

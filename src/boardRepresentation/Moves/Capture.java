@@ -12,11 +12,12 @@ public class Capture extends Move{
 	}
 	@Override
 	public void makeMove(Board board) {
+		enPassantFile = board.getEPFile();
 		long start = BitboardUtils.SQUARE[0]>>>startPos;
 		long end = BitboardUtils.SQUARE[0]>>>endPos;
 		pieceToMove.setBitboard((pieceToMove.getBitboard()&~start)|end);
 		capturedPiece.setBitboard(capturedPiece.getBitboard()&~end);
-		
+		board.setEP(null);
 		board.updateColorOccupied();
 		board.updateOccupied();
 		
@@ -28,7 +29,7 @@ public class Capture extends Move{
 		long end = BitboardUtils.SQUARE[0]>>>endPos;
 		pieceToMove.setBitboard((pieceToMove.getBitboard()&~end)|start);
 		capturedPiece.setBitboard(capturedPiece.getBitboard()|end);
-		
+		board.setEP(enPassantFile);
 		board.updateColorOccupied();
 		board.updateOccupied();
 	}

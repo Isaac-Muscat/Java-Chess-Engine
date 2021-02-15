@@ -8,8 +8,9 @@ import boardRepresentation.Board;
 import boardRepresentation.Color;
 import boardRepresentation.Moves.CastleKingside;
 import boardRepresentation.Moves.CastleQueenside;
+import boardRepresentation.Moves.KingOrRookCapture;
+import boardRepresentation.Moves.KingOrRookNonCapture;
 import boardRepresentation.Moves.Move;
-import boardRepresentation.Moves.PawnPromotion;
 import utilities.BitboardUtils;
 
 public class King extends Piece{
@@ -48,9 +49,43 @@ public class King extends Piece{
 			
 		long captures = board.getOpponentOccupied(color)&m;
 		long nonCaptures = ~o&m&~board.getWhiteOccupied();
-		moves.addAll(genCaptures(captures, bitboard, board.getPieces()));
-		moves.addAll(genNonCaptures(nonCaptures, bitboard));
+		moves.addAll(this.genCaptures(captures, bitboard, board.getPieces()));
+		moves.addAll(this.genNonCaptures(nonCaptures, bitboard));
 		moves.addAll(genCastles(board));
+		return moves;
+	}
+	@Override
+	protected Collection<Move> genNonCaptures(long nonCaptures, long piece) {
+		List<Move> moves = new ArrayList<>();
+		
+		long otherMoves = nonCaptures&(nonCaptures-1);
+		long moveBitboard = nonCaptures&~otherMoves;
+		while(moveBitboard!=0) {
+			moves.add(new KingOrRookNonCapture(this, Long.numberOfLeadingZeros(piece), Long.numberOfLeadingZeros(moveBitboard)));
+			
+			long temp = otherMoves;
+			otherMoves &= otherMoves-1;
+			moveBitboard = temp&~otherMoves;
+		}
+		return moves;
+	}
+	@Override
+	protected Collection<Move> genCaptures(long captures, long piece, Piece[] pieces) {
+		List<Move> moves = new ArrayList<>();
+		
+		long otherMoves = captures&(captures-1);
+		long moveBitboard = captures&~otherMoves;
+		while(moveBitboard!=0) {
+			for(Piece p: pieces) {
+				if(p.getColor()!=this.color && 0!=(p.getBitboard()&moveBitboard)) {
+					moves.add(new KingOrRookCapture(this, Long.numberOfLeadingZeros(piece), Long.numberOfLeadingZeros(moveBitboard), p));
+				}
+			}
+			
+			long temp = otherMoves;
+			otherMoves &= otherMoves-1;
+			moveBitboard = temp&~otherMoves;
+		}
 		return moves;
 	}
 	
@@ -68,6 +103,8 @@ public class King extends Piece{
 		
 		return moves;
 	}
+	
+	
 	public boolean getCastleKingside() {
 		return this.kCastle;
 	}

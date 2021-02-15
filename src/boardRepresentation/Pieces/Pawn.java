@@ -12,6 +12,7 @@ import boardRepresentation.Moves.Move;
 import boardRepresentation.Moves.NonCapture;
 import boardRepresentation.Moves.PawnPromotion;
 import boardRepresentation.Moves.PawnPromotionCapture;
+import boardRepresentation.Moves.doublePawnPush;
 import utilities.BitboardUtils;
 import utilities.File;
 import utilities.Rank;
@@ -61,7 +62,7 @@ public class Pawn extends Piece {
 				moves.addAll(genPromotions(promotions));
 				//gen en passant
 				File epFile = board.getEPFile();
-				if(epFile!=null) {
+				if(epFile!=null&&(bitboard&Rank.getRank(Rank.RANK_5))!=0) {
 					long epLeft = (bitboard&Rank.getRank(Rank.RANK_5)<<9)&File.getFile(epFile);
 					long epRight = (bitboard&Rank.getRank(Rank.RANK_5)<<7)&File.getFile(epFile);
 					moves.addAll(genEP(epRight, epLeft, board));
@@ -82,7 +83,7 @@ public class Pawn extends Piece {
 				moves.addAll(genPromotions(promotionsB));
 				//gen en passant
 				File epFileB = board.getEPFile();
-				if(epFileB!=null) {
+				if(epFileB!=null&&(bitboard&Rank.getRank(Rank.RANK_4))!=0) {
 					long epLeftB = (bitboard&Rank.getRank(Rank.RANK_4)>>>7)&File.getFile(epFileB);
 					long epRightB = (bitboard&Rank.getRank(Rank.RANK_4)>>>9)&File.getFile(epFileB);
 					moves.addAll(genEP(epRightB, epLeftB, board));
@@ -193,7 +194,7 @@ public class Pawn extends Piece {
 		moveBitboard = doubleUp&~otherMoves;
 		while(moveBitboard!=0) {
 			int endPos = Long.numberOfLeadingZeros(moveBitboard);
-			moves.add(new NonCapture(this, endPos-(color.getDirection()*16), endPos));
+			moves.add(new doublePawnPush(this, endPos-(color.getDirection()*16), endPos));
 			
 			long temp = otherMoves;
 			otherMoves &= otherMoves-1;

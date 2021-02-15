@@ -15,7 +15,6 @@ public class Board {
 	private File enPassantFile;
 	private final Piece[] pieces;
 	private long blackOccupied, whiteOccupied, occupied;
-	private BoardState boardState;
 	
 	public static class Builder {
 		private Piece[] pieces = new Piece[PieceEnum.values().length];
@@ -23,7 +22,6 @@ public class Board {
 		private long whiteOccupied=0;
 		private long occupied=0;
 		private Color sideToMove = Color.WHITE;
-		private BoardState boardState=BoardState.NORMAL;
 		
 		public Builder() {
 		}
@@ -71,14 +69,19 @@ public class Board {
 		return false;
 	}
 	
+	/*
+	 * ArrayList<Move> moves should be list of legal moves for current sideToMove
+	 */
 	public BoardState getBoardState(ArrayList<Move> moves) {
-		if(isInCheck()&&moves.size()==0)return BoardState;
-		return false;
-	}
-	
-	public boolean isInStalemate(ArrayList<Move> moves) {
-		if(!isInCheck()&&moves.size()==0)return true;
-		return false;
+		int size = moves.size();
+		if(size==0) {
+			if(isInCheck()) {
+				return sideToMove.inCheckMate();
+			}
+			return BoardState.STALEMATE;
+		}
+		return BoardState.NORMAL;
+		
 	}
 	
 	public ArrayList<Move> generateLegalMoves(){

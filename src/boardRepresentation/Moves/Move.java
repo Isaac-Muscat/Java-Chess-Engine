@@ -5,8 +5,7 @@ import boardRepresentation.Pieces.*;
 import utilities.File;
 
 public abstract class Move {
-	protected boolean kCastle, qCastle;
-	protected File epFile;
+	protected File enPassantFile = null;
 	protected int startPos, endPos;
 	protected Piece pieceToMove;
 	public Move(Piece pieceToMove, int startPos, int endPos) {
@@ -20,4 +19,12 @@ public abstract class Move {
 	
 	public abstract void makeMove(Board board);
 	public abstract void unmakeMove(Board board);
+	public String getInfo() {
+		String info = "";
+		info += "MoveType: " + this.getClass()+"\n";
+		info += "PieceToMove: " + pieceToMove.getPieceEnum()+"\n";
+		info += "startPos: " + startPos +"\n";
+		info += "endPos: " + endPos +"\n";
+		return info;
+	}
 }

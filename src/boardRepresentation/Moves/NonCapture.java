@@ -12,8 +12,10 @@ public class NonCapture extends Move{
 
 	@Override
 	public void makeMove(Board board) {
+		enPassantFile = board.getEPFile();
 		long newBitboard = (pieceToMove.getBitboard()&~(BitboardUtils.SQUARE[0]>>>startPos))|(BitboardUtils.SQUARE[0]>>>endPos);
 		pieceToMove.setBitboard(newBitboard);
+		board.setEP(null);
 		board.updateColorOccupied(pieceToMove.getColor());
 		board.updateOccupied();
 		
@@ -24,6 +26,7 @@ public class NonCapture extends Move{
 		long newBitboard = (pieceToMove.getBitboard()&~(BitboardUtils.SQUARE[0]>>>endPos))
 				|(BitboardUtils.SQUARE[0]>>>startPos);
 		pieceToMove.setBitboard(newBitboard);
+		board.setEP(enPassantFile);
 		board.updateColorOccupied(pieceToMove.getColor());
 		board.updateOccupied();
 	}

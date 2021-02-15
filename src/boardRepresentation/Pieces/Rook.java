@@ -4,7 +4,9 @@ import java.util.*;
 
 import boardRepresentation.Board;
 import boardRepresentation.Color;
-import boardRepresentation.Moves.*;
+import boardRepresentation.Moves.KingOrRookCapture;
+import boardRepresentation.Moves.KingOrRookNonCapture;
+import boardRepresentation.Moves.Move;
 import utilities.BitboardUtils;
 
 public class Rook extends Piece{
@@ -55,6 +57,41 @@ public class Rook extends Piece{
 			rook = temp&~nextPieces;
 		}
 		
+		return moves;
+	}
+	
+	@Override
+	protected Collection<Move> genNonCaptures(long nonCaptures, long piece) {
+		List<Move> moves = new ArrayList<>();
+		
+		long otherMoves = nonCaptures&(nonCaptures-1);
+		long moveBitboard = nonCaptures&~otherMoves;
+		while(moveBitboard!=0) {
+			moves.add(new KingOrRookNonCapture(this, Long.numberOfLeadingZeros(piece), Long.numberOfLeadingZeros(moveBitboard)));
+			
+			long temp = otherMoves;
+			otherMoves &= otherMoves-1;
+			moveBitboard = temp&~otherMoves;
+		}
+		return moves;
+	}
+	@Override
+	protected Collection<Move> genCaptures(long captures, long piece, Piece[] pieces) {
+		List<Move> moves = new ArrayList<>();
+		
+		long otherMoves = captures&(captures-1);
+		long moveBitboard = captures&~otherMoves;
+		while(moveBitboard!=0) {
+			for(Piece p: pieces) {
+				if(p.getColor()!=this.color && 0!=(p.getBitboard()&moveBitboard)) {
+					moves.add(new KingOrRookCapture(this, Long.numberOfLeadingZeros(piece), Long.numberOfLeadingZeros(moveBitboard), p));
+				}
+			}
+			
+			long temp = otherMoves;
+			otherMoves &= otherMoves-1;
+			moveBitboard = temp&~otherMoves;
+		}
 		return moves;
 	}
 	
