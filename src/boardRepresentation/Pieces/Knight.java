@@ -1,8 +1,6 @@
 package boardRepresentation.Pieces;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import boardRepresentation.Board;
 import boardRepresentation.Color;
@@ -35,8 +33,8 @@ public class Knight extends Piece{
 	}
 
 	@Override
-	public Collection<Move> genPseudoMoves(Board board) {
-		List<Move> moves = new ArrayList<>();
+	public ArrayList<Move> genPseudoMoves(Board board) {
+		ArrayList<Move> moves = new ArrayList<Move>();
 		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
 		long knight = bitboard&~nextPieces;			//Bitboard of selected knight
 		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
@@ -46,8 +44,8 @@ public class Knight extends Piece{
 			
 			long captures = board.getOpponentOccupied(color)&m;
 			long nonCaptures = ~o&m&~board.getWhiteOccupied();
-			moves.addAll(genCaptures(captures, knight, board.getPieces()));
-			moves.addAll(genNonCaptures(nonCaptures, knight));
+			genCaptures(captures, knight, board.getPieces(), moves);
+			genNonCaptures(nonCaptures, knight, moves);
 			
 			long temp = nextPieces;
 			nextPieces &= nextPieces-1;

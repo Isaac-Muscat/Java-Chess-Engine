@@ -1,8 +1,6 @@
 package boardRepresentation.Pieces;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import utilities.BitboardUtils;
 import boardRepresentation.Board;
@@ -35,8 +33,8 @@ public class Bishop extends Piece{
 	}
 
 	@Override
-	public Collection<Move> genPseudoMoves(Board board) {
-		List<Move> moves = new ArrayList<>();
+	public ArrayList<Move> genPseudoMoves(Board board) {
+		ArrayList<Move> moves = new ArrayList<Move>();
 		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
 		long bishop = bitboard&~nextPieces;			//Bitboard of selected bishop
 		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
@@ -49,8 +47,8 @@ public class Bishop extends Piece{
 			
 			long captures = board.getOpponentOccupied(color)&movesBitboard;
 			long nonCaptures = ~board.getOccupied()&movesBitboard;
-			moves.addAll(genCaptures(captures, bishop, board.getPieces()));
-			moves.addAll(genNonCaptures(nonCaptures, bishop));
+			genCaptures(captures, bishop, board.getPieces(), moves);
+			genNonCaptures(nonCaptures, bishop, moves);
 			
 			long temp = nextPieces;
 			nextPieces &= nextPieces-1;

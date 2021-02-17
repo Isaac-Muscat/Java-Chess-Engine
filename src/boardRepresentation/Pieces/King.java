@@ -1,8 +1,6 @@
 package boardRepresentation.Pieces;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import boardRepresentation.Board;
 import boardRepresentation.Color;
@@ -14,6 +12,7 @@ import boardRepresentation.Moves.Move;
 import utilities.BitboardUtils;
 
 public class King extends Piece{
+	public static int castleCount = 0;
 	public static final King bKings = new King.Builder()
 			.setBitboard(initBitboard(Color.BLACK))
 			.setColor(Color.BLACK)
@@ -41,22 +40,21 @@ public class King extends Piece{
 	}
 
 	@Override
-	public Collection<Move> genPseudoMoves(Board board) {
-		List<Move> moves = new ArrayList<>();
+	public ArrayList<Move> genPseudoMoves(Board board) {
+		ArrayList<Move> moves = new ArrayList<Move>();
 		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
 			
 		long m = BitboardUtils.getKingMask(Long.numberOfLeadingZeros(bitboard));
 			
 		long captures = board.getOpponentOccupied(color)&m;
 		long nonCaptures = ~o&m&~board.getWhiteOccupied();
-		moves.addAll(this.genCaptures(captures, bitboard, board.getPieces()));
-		moves.addAll(this.genNonCaptures(nonCaptures, bitboard));
-		moves.addAll(genCastles(board));
+		this.genCaptures(captures, bitboard, board.getPieces(), moves);
+		this.genNonCaptures(nonCaptures, bitboard, moves);
+		genCastles(board, moves);
 		return moves;
 	}
 	@Override
-	protected Collection<Move> genNonCaptures(long nonCaptures, long piece) {
-		List<Move> moves = new ArrayList<>();
+	protected void genNonCaptures(long nonCaptures, long piece, ArrayList<Move> moves) {
 		
 		long otherMoves = nonCaptures&(nonCaptures-1);
 		long moveBitboard = nonCaptures&~otherMoves;
@@ -67,11 +65,9 @@ public class King extends Piece{
 			otherMoves &= otherMoves-1;
 			moveBitboard = temp&~otherMoves;
 		}
-		return moves;
 	}
 	@Override
-	protected Collection<Move> genCaptures(long captures, long piece, Piece[] pieces) {
-		List<Move> moves = new ArrayList<>();
+	protected void genCaptures(long captures, long piece, Piece[] pieces, ArrayList<Move> moves) {
 		
 		long otherMoves = captures&(captures-1);
 		long moveBitboard = captures&~otherMoves;
@@ -79,6 +75,7 @@ public class King extends Piece{
 			for(Piece p: pieces) {
 				if(p.getColor()!=this.color && 0!=(p.getBitboard()&moveBitboard)) {
 					moves.add(new KingOrRookCapture(this, Long.numberOfLeadingZeros(piece), Long.numberOfLeadingZeros(moveBitboard), p));
+					Move.numCaptures++;
 				}
 			}
 			
@@ -86,22 +83,19 @@ public class King extends Piece{
 			otherMoves &= otherMoves-1;
 			moveBitboard = temp&~otherMoves;
 		}
-		return moves;
 	}
 	
-	private Collection<Move> genCastles(Board board){
-		List<Move> moves = new ArrayList<>();
+	private void genCastles(Board board, ArrayList<Move> moves){
 		long attacks = board.getOpponentAttackSet(color);
 		long o = board.getOccupied()&~bitboard;
 		long dir = color.getDirection();
-		if(kCastle&&((o|attacks)&(7L<<29+dir*28))==0) {
+		if(Rook.getRooks(color).getBitboard()==BitboardUtils.SQUARE[35+color.getDirection()*28]&&kCastle&&((o|attacks)&(7L<<29+dir*28))==0) {
 			moves.add(new CastleKingside(this));
-		} else if(qCastle&&((o|attacks)&(15L<<31+dir*28))==0) {
+			castleCount++;
+		} else if(Rook.getRooks(color).getBitboard()==BitboardUtils.SQUARE[28+color.getDirection()*28]&&qCastle&&((o|attacks)&(15L<<31+dir*28))==0) {
 			moves.add(new CastleQueenside(this));
+			castleCount++;
 		}
-		
-		
-		return moves;
 	}
 	
 	

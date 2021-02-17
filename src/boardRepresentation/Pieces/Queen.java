@@ -1,8 +1,6 @@
 package boardRepresentation.Pieces;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import boardRepresentation.Board;
 import boardRepresentation.Color;
@@ -35,8 +33,8 @@ public class Queen extends Piece{
 	}
 
 	@Override
-	public Collection<Move> genPseudoMoves(Board board) {
-		List<Move> moves = new ArrayList<>();
+	public ArrayList<Move> genPseudoMoves(Board board) {
+		ArrayList<Move> moves = new ArrayList<Move>();
 		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
 		long queen = bitboard&~nextPieces;			//Bitboard of selected queen
 		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
@@ -56,8 +54,8 @@ public class Queen extends Piece{
 			
 			long captures = board.getOpponentOccupied(color)&movesBitboard;
 			long nonCaptures = ~board.getOccupied()&movesBitboard;
-			moves.addAll(genCaptures(captures, queen, board.getPieces()));
-			moves.addAll(genNonCaptures(nonCaptures, queen));
+			genCaptures(captures, queen, board.getPieces(), moves);
+			genNonCaptures(nonCaptures, queen, moves);
 			
 			long temp = nextPieces;
 			nextPieces &= nextPieces-1;

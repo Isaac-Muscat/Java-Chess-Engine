@@ -168,7 +168,7 @@ public class Board {
 		return whiteOccupied;
 	}
 
-	public void print() {
+	public void print(boolean verbose) {
 		String[] board = new String[64];
 		for(int i = 0;i<64;i++) {
 			board[i] = "-";
@@ -191,7 +191,14 @@ public class Board {
 			}
 			System.out.print(board[i]);
 		}
-		System.out.println("\n");
+		if(verbose) {
+			System.out.println("Side To Move: " + sideToMove);
+			System.out.println("En Passant File: " + enPassantFile);
+			System.out.println("White kCastle: ks - " + King.getKings(Color.WHITE).getCastleKingside());
+			System.out.println("White qCastle: ks - " + King.getKings(Color.WHITE).getCastleQueenside());
+			System.out.println("Black kCastle: ks - " + King.getKings(Color.BLACK).getCastleKingside());
+			System.out.println("Black qCastle: ks - " + King.getKings(Color.BLACK).getCastleQueenside());
+		}
 	}
 
 	public void setEP(File file) {

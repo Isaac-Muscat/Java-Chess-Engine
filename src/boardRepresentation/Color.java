@@ -3,7 +3,7 @@ package boardRepresentation;
 import boardRepresentation.Pieces.King;
 
 public enum Color {
-	WHITE(-1){
+	WHITE(){
 		public Color getOther() {
 			return BLACK;
 		}
@@ -21,8 +21,13 @@ public enum Color {
 		public King getKing() {
 			return King.getKings(WHITE);
 		}
+
+		@Override
+		public int getDirection() {
+			return -1;
+		}
 	},
-	BLACK(1){
+	BLACK(){
 		public Color getOther() {
 			return WHITE;
 		}
@@ -37,17 +42,14 @@ public enum Color {
 		public King getKing() {
 			return King.getKings(BLACK);
 		}
+		@Override
+		public int getDirection() {
+			return 1;
+		}
 	};
 	public abstract King getKing();
 	public abstract BoardState inCheckMate();
 	public abstract int getStartIndex();
 	public abstract Color getOther();
-	private final int direction;
-	private Color(int direction) {
-		this.direction = direction;
-	}
-	
-	public int getDirection() {
-		return this.direction;
-	}
+	public abstract int getDirection();
 }

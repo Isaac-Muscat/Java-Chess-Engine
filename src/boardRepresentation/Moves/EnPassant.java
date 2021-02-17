@@ -10,7 +10,6 @@ public class EnPassant extends Move{
 	public EnPassant(Piece pieceToMove, int startPos, int endPos) {
 		
 		super(pieceToMove, startPos, endPos);
-		System.out.println(startPos);
 	}
 	
 	@Override

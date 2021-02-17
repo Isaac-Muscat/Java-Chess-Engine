@@ -1,6 +1,6 @@
 package boardRepresentation.Pieces;
 
-import java.util.*;
+import java.util.ArrayList;
 
 import boardRepresentation.Board;
 import boardRepresentation.Color;
@@ -35,8 +35,8 @@ public class Rook extends Piece{
 	}
 
 	@Override
-	public Collection<Move> genPseudoMoves(Board board) {
-		List<Move> moves = new ArrayList<>();
+	public ArrayList<Move> genPseudoMoves(Board board) {
+		ArrayList<Move> moves = new ArrayList<Move>();
 		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
 		long rook = bitboard&~nextPieces;			//Bitboard of selected rook
 		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
@@ -49,8 +49,8 @@ public class Rook extends Piece{
 			
 			long captures = board.getOpponentOccupied(color)&movesBitboard;
 			long nonCaptures = ~board.getOccupied()&movesBitboard;
-			moves.addAll(genCaptures(captures, rook, board.getPieces()));
-			moves.addAll(genNonCaptures(nonCaptures, rook));
+			genCaptures(captures, rook, board.getPieces(), moves);
+			genNonCaptures(nonCaptures, rook, moves);
 			
 			long temp = nextPieces;
 			nextPieces &= nextPieces-1;
@@ -61,8 +61,7 @@ public class Rook extends Piece{
 	}
 	
 	@Override
-	protected Collection<Move> genNonCaptures(long nonCaptures, long piece) {
-		List<Move> moves = new ArrayList<>();
+	protected void genNonCaptures(long nonCaptures, long piece, ArrayList<Move> moves) {
 		
 		long otherMoves = nonCaptures&(nonCaptures-1);
 		long moveBitboard = nonCaptures&~otherMoves;
@@ -73,11 +72,9 @@ public class Rook extends Piece{
 			otherMoves &= otherMoves-1;
 			moveBitboard = temp&~otherMoves;
 		}
-		return moves;
 	}
 	@Override
-	protected Collection<Move> genCaptures(long captures, long piece, Piece[] pieces) {
-		List<Move> moves = new ArrayList<>();
+	protected void genCaptures(long captures, long piece, Piece[] pieces, ArrayList<Move> moves) {
 		
 		long otherMoves = captures&(captures-1);
 		long moveBitboard = captures&~otherMoves;
@@ -85,6 +82,7 @@ public class Rook extends Piece{
 			for(Piece p: pieces) {
 				if(p.getColor()!=this.color && 0!=(p.getBitboard()&moveBitboard)) {
 					moves.add(new KingOrRookCapture(this, Long.numberOfLeadingZeros(piece), Long.numberOfLeadingZeros(moveBitboard), p));
+					Move.numCaptures++;
 				}
 			}
 			
@@ -92,7 +90,6 @@ public class Rook extends Piece{
 			otherMoves &= otherMoves-1;
 			moveBitboard = temp&~otherMoves;
 		}
-		return moves;
 	}
 	
 	public static Rook getRooks(Color color) {

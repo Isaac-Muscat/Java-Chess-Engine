@@ -1,8 +1,6 @@
 package boardRepresentation.Pieces;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import boardRepresentation.Board;
 import boardRepresentation.Color;
@@ -42,7 +40,7 @@ public abstract class Piece {
 		protected abstract T self();
 	}
 	
-	public abstract Collection<Move> genPseudoMoves(Board board);
+	public abstract ArrayList<Move> genPseudoMoves(Board board);
 	public abstract long genAttackSet(Board board);
 	
 	public long getBitboard() {
@@ -59,8 +57,8 @@ public abstract class Piece {
 		return pieceType;
 	}
 	
-	public Collection<Move> genLegalMoves(Board board){
-		ArrayList<Move> moves = (ArrayList<Move>)genPseudoMoves(board);
+	public ArrayList<Move> genLegalMoves(Board board){
+		ArrayList<Move> moves = genPseudoMoves(board);
 		for(int i = moves.size()-1;i>=0;i--) {
 			moves.get(i).makeMove(board);
 			long attacks = board.getOpponentAttackSet(color);
@@ -72,8 +70,7 @@ public abstract class Piece {
 		}
 		return moves;
 	}
-	protected Collection<Move> genNonCaptures(long nonCaptures, long piece) {
-		List<Move> moves = new ArrayList<>();
+	protected void genNonCaptures(long nonCaptures, long piece, ArrayList<Move> moves) {
 		
 		long otherMoves = nonCaptures&(nonCaptures-1);
 		long moveBitboard = nonCaptures&~otherMoves;
@@ -84,10 +81,8 @@ public abstract class Piece {
 			otherMoves &= otherMoves-1;
 			moveBitboard = temp&~otherMoves;
 		}
-		return moves;
 	}
-	protected Collection<Move> genCaptures(long captures, long piece, Piece[] pieces) {
-		List<Move> moves = new ArrayList<>();
+	protected void genCaptures(long captures, long piece, Piece[] pieces, ArrayList<Move> moves) {
 		
 		long otherMoves = captures&(captures-1);
 		long moveBitboard = captures&~otherMoves;
@@ -95,6 +90,7 @@ public abstract class Piece {
 			for(Piece p: pieces) {
 				if(p.getColor()!=this.color && 0!=(p.getBitboard()&moveBitboard)) {
 					moves.add(new Capture(this, Long.numberOfLeadingZeros(piece), Long.numberOfLeadingZeros(moveBitboard), p));
+					Move.numCaptures++;
 				}
 			}
 			
@@ -102,6 +98,5 @@ public abstract class Piece {
 			otherMoves &= otherMoves-1;
 			moveBitboard = temp&~otherMoves;
 		}
-		return moves;
 	}
 }

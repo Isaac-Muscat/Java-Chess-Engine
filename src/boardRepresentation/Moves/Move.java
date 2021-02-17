@@ -5,6 +5,7 @@ import boardRepresentation.Pieces.*;
 import utilities.File;
 
 public abstract class Move {
+	public static int numCaptures = 0;
 	protected File enPassantFile = null;
 	protected int startPos, endPos;
 	protected Piece pieceToMove;

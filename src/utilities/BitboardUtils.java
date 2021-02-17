@@ -15,8 +15,8 @@ public final class BitboardUtils {
 	public static final long[] KING_MOVES = createAllKingMove();
 	
 	
-	private BitboardUtils() {
-		new Exception("Cannot create BoardUtils object!");
+	private BitboardUtils() throws Exception {
+		throw new Exception("Cannot create BoardUtils object!");
 	}
 	
 	private static long[] createAllKingMove() {
