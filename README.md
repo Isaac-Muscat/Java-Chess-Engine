@@ -7,7 +7,7 @@ I have always enjoyed the game of chess and been amazed by the power of computer
 * The board uses make and unmake move methods rather than copy-make (which failed in my first attempt)
 * All piece objects are stored in static variables within their class (like a singleton)
 * Color and PieceEnum are used to store the type of piece
-* The full-move and half-move clock is not implemented yet
+* The full-move counter and half-move clock is not implemented yet
 
 ## Move Generation
 * "Move" is extended by different types of moves
