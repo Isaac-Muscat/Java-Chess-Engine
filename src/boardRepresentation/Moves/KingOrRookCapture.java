@@ -21,12 +21,12 @@ public class KingOrRookCapture extends Capture{
 			((King) pieceToMove).setCastleKingside(false);
 			((King) pieceToMove).setCastleQueenside(false);
 		} else {
-			switch(endPos+pieceToMove.getColor().getDirection()*28) {
+			switch(startPos+pieceToMove.getColor().getDirection()*28) {
 			case 35:
-				((King) pieceToMove).setCastleKingside(false);
+				pieceToMove.getColor().getKing().setCastleKingside(false);
 				break;
 			case 28:
-				((King) pieceToMove).setCastleQueenside(false);
+				pieceToMove.getColor().getKing().setCastleQueenside(false);
 				break;
 			}
 		}

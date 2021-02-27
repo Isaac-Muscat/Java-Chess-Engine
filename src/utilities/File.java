@@ -3,22 +3,24 @@ package utilities;
 import utilities.BitboardUtils;
 
 public enum File {
-	FILE_A(0),
-	FILE_B(1),
-	FILE_C(2),
-	FILE_D(3),
-	FILE_E(4),
-	FILE_F(5),
-	FILE_G(6),
-	FILE_H(7);
+	FILE_A(0, "a"),
+	FILE_B(1, "b"),
+	FILE_C(2, "c"),
+	FILE_D(3, "d"),
+	FILE_E(4, "e"),
+	FILE_F(5, "f"),
+	FILE_G(6, "g"),
+	FILE_H(7, "h");
 	
 	public static final int NUM_FILES = 8;
 	public static final long[] FILES = createFiles();
 	private final int value;
+	private final String file;
 	
 	
-	private File(int value) {
+	private File(int value, String file) {
 		this.value = value;
+		this.file = file;
 	}
 	
 	public static File returnFileFromIndex(int index) {
@@ -49,6 +51,13 @@ public enum File {
 	
 	public int getValue() {
 		return value;
+	}
+
+	public static File getFileFromString(String string) {
+		for(File cur: File.values()) {
+			if(cur.file.equals(string))return cur;
+		}
+		return null;
 	}
 	
 

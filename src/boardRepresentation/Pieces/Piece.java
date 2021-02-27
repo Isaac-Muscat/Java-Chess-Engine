@@ -7,6 +7,7 @@ import boardRepresentation.Color;
 import boardRepresentation.Moves.Capture;
 import boardRepresentation.Moves.Move;
 import boardRepresentation.Moves.NonCapture;
+import utilities.BitboardUtils;
 
 public abstract class Piece {
 	protected long bitboard;
@@ -83,14 +84,12 @@ public abstract class Piece {
 		}
 	}
 	protected void genCaptures(long captures, long piece, Piece[] pieces, ArrayList<Move> moves) {
-		
 		long otherMoves = captures&(captures-1);
 		long moveBitboard = captures&~otherMoves;
 		while(moveBitboard!=0) {
 			for(Piece p: pieces) {
 				if(p.getColor()!=this.color && 0!=(p.getBitboard()&moveBitboard)) {
 					moves.add(new Capture(this, Long.numberOfLeadingZeros(piece), Long.numberOfLeadingZeros(moveBitboard), p));
-					Move.numCaptures++;
 				}
 			}
 			
@@ -99,4 +98,28 @@ public abstract class Piece {
 			moveBitboard = temp&~otherMoves;
 		}
 	}
+	protected void genNonCaptures(long nonCaptures, int from, ArrayList<Move> moves) {
+		while(nonCaptures!=0) {
+			int to = Long.numberOfLeadingZeros(nonCaptures);
+			moves.add(new NonCapture(this, from, to));
+			nonCaptures^=BitboardUtils.SQUARE[to];
+		}
+	}
+	protected void genCaptures(long captures, int from, Piece[] pieces, ArrayList<Move> moves) {
+		while(captures!=0) {
+			for(Piece p: pieces) {
+				if(p.getColor()!=this.color) {
+					long newCaptures = p.getBitboard()&captures;
+					while(newCaptures!=0) {
+						int to = Long.numberOfLeadingZeros(newCaptures);
+						moves.add(new Capture(this, from, to, p));
+						long capture = BitboardUtils.SQUARE[to];
+						captures^= capture;
+						newCaptures^=capture;
+					}
+				}
+			}
+		}
+	}
+	
 }

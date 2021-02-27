@@ -16,7 +16,6 @@ import utilities.File;
 import utilities.Rank;
 
 public class Pawn extends Piece {
-	public static int epCount = 0;
 	public static final Pawn bPawns = new Pawn.Builder()
 			.setBitboard(initBitboard(Color.BLACK))
 			.setColor(Color.BLACK)
@@ -58,10 +57,10 @@ public class Pawn extends Piece {
 				genPromotions(promotions, moves);
 				File epFile = board.getEPFile();
 				if(epFile!=null&&(bitboard&Rank.getRank(Rank.RANK_5))!=0) {
-					long epLeft = ((bitboard&Rank.getRank(Rank.RANK_5))<<9)&File.getFile(epFile);
-					if(epLeft>0)genEPLeft(epLeft, board, moves);
-					long epRight = ((bitboard&Rank.getRank(Rank.RANK_5))<<7)&File.getFile(epFile);
-					if(epRight>0)genEPRight(epRight, board, moves);
+					long epLeft = ((~File.getFile(File.FILE_A)&bitboard&Rank.getRank(Rank.RANK_5))<<9)&File.getFile(epFile);
+					if(epLeft!=0)genEPLeft(epLeft, board, moves);
+					long epRight = ((~File.getFile(File.FILE_H)&bitboard&Rank.getRank(Rank.RANK_5))<<7)&File.getFile(epFile);
+					if(epRight!=0)genEPRight(epRight, board, moves);
 				}
 			
 				break;
@@ -76,10 +75,10 @@ public class Pawn extends Piece {
 				genPromotions(promotionsB, moves);
 				File epFileB = board.getEPFile();
 				if(epFileB!=null&&(bitboard&Rank.getRank(Rank.RANK_4))!=0) {
-					long epLeftB = ((bitboard&Rank.getRank(Rank.RANK_4))>>>7)&File.getFile(epFileB);
-					if(epLeftB>0)genEPLeft(epLeftB, board, moves);
-					long epRightB = ((bitboard&Rank.getRank(Rank.RANK_4))>>>9)&File.getFile(epFileB);
-					if(epRightB>0)genEPRight(epRightB, board, moves);
+					long epLeftB = ((~File.getFile(File.FILE_A)&bitboard&Rank.getRank(Rank.RANK_4))>>>7)&File.getFile(epFileB);
+					if(epLeftB!=0)genEPLeft(epLeftB, board, moves);
+					long epRightB = ((~File.getFile(File.FILE_H)&bitboard&Rank.getRank(Rank.RANK_4))>>>9)&File.getFile(epFileB);
+					if(epRightB!=0)genEPRight(epRightB, board, moves);
 				}
 				break;
 		}
@@ -88,108 +87,83 @@ public class Pawn extends Piece {
 	
 	private void genEPLeft(long leftCaptures, Board board, ArrayList<Move> moves) {
 		
-		int endPos = Long.numberOfLeadingZeros(leftCaptures);
+		int to = Long.numberOfLeadingZeros(leftCaptures);
 		int direction = color.getDirection();
-		moves.add(new EnPassant(this, endPos-direction*(8-direction), endPos));
-		epCount++;
+		moves.add(new EnPassant(this, to-direction*(8-direction), to));
+		
 		
 	}
 	
 	private void genEPRight(long rightCaptures, Board board, ArrayList<Move> moves) {
-		int endPos = Long.numberOfLeadingZeros(rightCaptures);
+		int to = Long.numberOfLeadingZeros(rightCaptures);
 		int direction = color.getDirection();
-		moves.add(new EnPassant(this, endPos-direction*(8+direction), endPos));
-		epCount++;
+		moves.add(new EnPassant(this, to-direction*(8+direction), to));
 	}
 
 	private void genPromotions(long promotions, ArrayList<Move> moves){
-		long otherMoves = promotions&(promotions-1);
-		long moveBitboard = promotions&~otherMoves;
-		while(moveBitboard!=0) {
-			int endPos = Long.numberOfLeadingZeros(moveBitboard);
-			int direction = color.getDirection();
-			moves.add(new PawnPromotion(this, endPos-direction*8, endPos, Queen.getQueens(color)));
-			moves.add(new PawnPromotion(this, endPos-direction*8, endPos, Knight.getKnights(color)));
-			moves.add(new PawnPromotion(this, endPos-direction*8, endPos, Rook.getRooks(color)));
-			moves.add(new PawnPromotion(this, endPos-direction*8, endPos, Bishop.getBishops(color)));
-			long temp = otherMoves;
-			otherMoves &= otherMoves-1;
-			moveBitboard = temp&~otherMoves;
+		int direction = color.getDirection();
+		while(promotions!=0) {
+			int to = Long.numberOfLeadingZeros(promotions);
+			moves.add(new PawnPromotion(this, to-direction*8, to, Queen.getQueens(color)));
+			moves.add(new PawnPromotion(this, to-direction*8, to, Knight.getKnights(color)));
+			moves.add(new PawnPromotion(this, to-direction*8, to, Rook.getRooks(color)));
+			moves.add(new PawnPromotion(this, to-direction*8, to, Bishop.getBishops(color)));
+			promotions^=BitboardUtils.SQUARE[to];
 		}
 	}
 	
  	protected void genCaptures(long rightCaptures, long leftCaptures, Board board, ArrayList<Move> moves) {
- 		
-		long otherMoves = rightCaptures&(rightCaptures-1);
-		long moveBitboard = rightCaptures&~otherMoves;
-		while(moveBitboard!=0) {
-			int endPos = Long.numberOfLeadingZeros(moveBitboard);
-			int direction = color.getDirection();
+ 		int direction = color.getDirection();
+		while(rightCaptures!=0) {
+			int to = Long.numberOfLeadingZeros(rightCaptures);
+			long capture = BitboardUtils.SQUARE[to];
 			for(Piece p: board.getPieces()) {
-				if(p.getColor()!=this.color && 0!=(p.getBitboard()&moveBitboard)) {
-					Move.numCaptures++;
-					if((moveBitboard&BitboardUtils.getRankMask(31*(1+direction)))!=0) {
-						moves.add(new PawnPromotionCapture(this, endPos-direction*8, endPos, Queen.getQueens(color), p));
-						moves.add(new PawnPromotionCapture(this, endPos-direction*8, endPos, Knight.getKnights(color), p));
-						moves.add(new PawnPromotionCapture(this, endPos-direction*8, endPos, Rook.getRooks(color), p));
-						moves.add(new PawnPromotionCapture(this, endPos-direction*8, endPos, Bishop.getBishops(color), p));
-						continue;
+				if(p.getColor()!=this.color && 0!=(p.getBitboard()&capture)) {
+					if((capture&BitboardUtils.getRankMask(31*(1+direction)))!=0) {
+						moves.add(new PawnPromotionCapture(this, to-direction*(8+direction), to, Queen.getQueens(color), p));
+						moves.add(new PawnPromotionCapture(this, to-direction*(8+direction), to, Knight.getKnights(color), p));
+						moves.add(new PawnPromotionCapture(this, to-direction*(8+direction), to, Rook.getRooks(color), p));
+						moves.add(new PawnPromotionCapture(this, to-direction*(8+direction), to, Bishop.getBishops(color), p));
+					} else {
+						moves.add(new Capture(this, to-direction*(8+direction), to, p));
 					}
-					moves.add(new Capture(this, endPos-direction*(8+direction), endPos, p));
 				}
 			}
 			
-			long temp = otherMoves;
-			otherMoves &= otherMoves-1;
-			moveBitboard = temp&~otherMoves;
+			rightCaptures^=capture;
 		}
 		
-		otherMoves = leftCaptures&(leftCaptures-1);
-		moveBitboard = leftCaptures&~otherMoves;
-		while(moveBitboard!=0) {
-			int endPos = Long.numberOfLeadingZeros(moveBitboard);
-			int direction = color.getDirection();
+		while(leftCaptures!=0) {
+			int to = Long.numberOfLeadingZeros(leftCaptures);
+			long capture = BitboardUtils.SQUARE[to];
 			for(Piece p: board.getPieces()) {
-				if(p.getColor()!=this.color && 0!=(p.getBitboard()&moveBitboard)) {
-					Move.numCaptures++;
-					if((moveBitboard&BitboardUtils.getRankMask(31*(1+direction)))!=0) {
-						moves.add(new PawnPromotionCapture(this, endPos-direction*8, endPos, Queen.getQueens(color), p));
-						moves.add(new PawnPromotionCapture(this, endPos-direction*8, endPos, Knight.getKnights(color), p));
-						moves.add(new PawnPromotionCapture(this, endPos-direction*8, endPos, Rook.getRooks(color), p));
-						moves.add(new PawnPromotionCapture(this, endPos-direction*8, endPos, Bishop.getBishops(color), p));
-						continue;
+				if(p.getColor()!=this.color && 0!=(p.getBitboard()&capture)) {
+					if((capture&BitboardUtils.getRankMask(31*(1+direction)))!=0) {
+						moves.add(new PawnPromotionCapture(this, to-direction*(8-direction), to, Queen.getQueens(color), p));
+						moves.add(new PawnPromotionCapture(this, to-direction*(8-direction), to, Knight.getKnights(color), p));
+						moves.add(new PawnPromotionCapture(this, to-direction*(8-direction), to, Rook.getRooks(color), p));
+						moves.add(new PawnPromotionCapture(this, to-direction*(8-direction), to, Bishop.getBishops(color), p));
+					} else {
+						moves.add(new Capture(this, to-direction*(8-direction), to, p));
 					}
-					moves.add(new Capture(this, endPos-direction*(8-direction), endPos, p));
 				}
 			}
-			
-			long temp = otherMoves;
-			otherMoves &= otherMoves-1;
-			moveBitboard = temp&~otherMoves;
+			leftCaptures^=capture;
 		}
 	}
 	
 	@Override
 	protected void genNonCaptures(long singleUp, long doubleUp, ArrayList<Move> moves) {
-		long otherMoves = singleUp&(singleUp-1);
-		long moveBitboard = singleUp&~otherMoves;
-		while(moveBitboard!=0) {
-			int endPos = Long.numberOfLeadingZeros(moveBitboard);
-			moves.add(new NonCapture(this, endPos-(color.getDirection()*8), endPos));
-			
-			long temp = otherMoves;
-			otherMoves &= otherMoves-1;
-			moveBitboard = temp&~otherMoves;
+		int direction = color.getDirection();
+		while(singleUp!=0) {
+			int to = Long.numberOfLeadingZeros(singleUp);
+			moves.add(new NonCapture(this, to-(direction*8), to));
+			singleUp^=BitboardUtils.SQUARE[to];
 		}
-		otherMoves = doubleUp&(doubleUp-1);
-		moveBitboard = doubleUp&~otherMoves;
-		while(moveBitboard!=0) {
-			int endPos = Long.numberOfLeadingZeros(moveBitboard);
-			moves.add(new DoublePawnPush(this, endPos-(color.getDirection()*16), endPos));
-			
-			long temp = otherMoves;
-			otherMoves &= otherMoves-1;
-			moveBitboard = temp&~otherMoves;
+		while(doubleUp!=0) {
+			int to = Long.numberOfLeadingZeros(doubleUp);
+			moves.add(new DoublePawnPush(this, to-(direction*16), to));
+			doubleUp^=BitboardUtils.SQUARE[to];
 		}
 		
 	}

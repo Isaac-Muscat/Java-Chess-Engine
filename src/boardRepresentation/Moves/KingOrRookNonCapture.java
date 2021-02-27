@@ -20,7 +20,7 @@ public class KingOrRookNonCapture extends NonCapture{
 			((King) pieceToMove).setCastleKingside(false);
 			((King) pieceToMove).setCastleQueenside(false);
 		} else {
-			switch(endPos+pieceToMove.getColor().getDirection()*28) {
+			switch(startPos+pieceToMove.getColor().getDirection()*28) {
 			case 35:
 				pieceToMove.getColor().getKing().setCastleKingside(false);
 				break;

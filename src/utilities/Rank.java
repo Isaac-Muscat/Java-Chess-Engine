@@ -32,7 +32,7 @@ public enum Rank {
 	}
 	
 	public static long getRank(Rank rank) {
-		return RANKS[7-rank.getValue()];
+		return RANKS[rank.getValue()];
 	}
 	
 	private static long[] createRanks() {
@@ -40,7 +40,7 @@ public enum Rank {
 		long init = 0;
 		for(int i = 0;i<NUM_RANKS; i++) {
 			for(int j = 0;j<NUM_RANKS;j++) {
-				init |= 1L<<j+i*NUM_RANKS;
+				init |= BitboardUtils.SQUARE[0]>>>j+i*NUM_RANKS;
 			}
 			ranks[i] = init;
 			init=0;

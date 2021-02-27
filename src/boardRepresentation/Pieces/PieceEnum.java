@@ -29,4 +29,11 @@ public enum PieceEnum {
 	public String getSymbol() {
 		return this.symbol;
 	}
+	
+	public static PieceEnum getPieceByString (String symbol) {
+		for(PieceEnum piece: PieceEnum.values()) {
+			if(symbol.equals(piece.getSymbol()))return piece;
+		}
+		return null;
+	}
 }

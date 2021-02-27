@@ -35,24 +35,21 @@ public class Bishop extends Piece{
 	@Override
 	public ArrayList<Move> genPseudoMoves(Board board) {
 		ArrayList<Move> moves = new ArrayList<Move>();
-		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
-		long bishop = bitboard&~nextPieces;			//Bitboard of selected bishop
-		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
-		while(bishop!=0) {							//Basically loops over every bishop (one color)
-			
-			long m = BitboardUtils.getDiagonalMask(Long.numberOfLeadingZeros(bishop));
+		long bishops = bitboard;
+		long o = board.getOccupied();
+		while(bishops!=0) {
+			int from = Long.numberOfLeadingZeros(bishops);
+			long bishop = BitboardUtils.SQUARE[from];
+			long m = BitboardUtils.getDiagonalMask(from);
 			long movesBitboard = m&(((o&m)-2*bishop) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(bishop)));
-			m = BitboardUtils.getAntiDiagonalMask(Long.numberOfLeadingZeros(bishop));
+			m = BitboardUtils.getAntiDiagonalMask(from);
 			movesBitboard |= m&(((o&m)-2*bishop) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(bishop)));
 			
 			long captures = board.getOpponentOccupied(color)&movesBitboard;
-			long nonCaptures = ~board.getOccupied()&movesBitboard;
-			genCaptures(captures, bishop, board.getPieces(), moves);
-			genNonCaptures(nonCaptures, bishop, moves);
-			
-			long temp = nextPieces;
-			nextPieces &= nextPieces-1;
-			bishop = temp&~nextPieces;
+			long nonCaptures = ~o&movesBitboard;
+			genCaptures(captures, from, board.getPieces(), moves);
+			genNonCaptures(nonCaptures, from, moves);
+			bishops^=bishop;
 		}
 		
 		return moves;
@@ -78,19 +75,16 @@ public class Bishop extends Piece{
 	@Override
 	public long genAttackSet(Board board) {
 		long movesBitboard = 0;
-		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
-		long bishop = bitboard&~nextPieces;			//Bitboard of selected bishop
-		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
-		while(bishop!=0) {							//Basically loops over every bishop (one color)
-			
-			long m = BitboardUtils.getDiagonalMask(Long.numberOfLeadingZeros(bishop));
+		long bishops = bitboard;
+		long o = board.getOccupied();
+		while(bishops!=0) {
+			int pos = Long.numberOfLeadingZeros(bishops);
+			long bishop = BitboardUtils.SQUARE[pos];
+			long m = BitboardUtils.getDiagonalMask(pos);
 			movesBitboard |= m&(((o&m)-2*bishop) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(bishop)));
-			m = BitboardUtils.getAntiDiagonalMask(Long.numberOfLeadingZeros(bishop));
+			m = BitboardUtils.getAntiDiagonalMask(pos);
 			movesBitboard |= m&(((o&m)-2*bishop) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(bishop)));
-			
-			long temp = nextPieces;
-			nextPieces &= nextPieces-1;
-			bishop = temp&~nextPieces;
+			bishops^=bishop;
 		}
 		return movesBitboard;
 	}

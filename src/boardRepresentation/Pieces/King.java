@@ -11,8 +11,7 @@ import boardRepresentation.Moves.KingOrRookNonCapture;
 import boardRepresentation.Moves.Move;
 import utilities.BitboardUtils;
 
-public class King extends Piece{
-	public static int castleCount = 0;
+public class King extends Piece {
 	public static final King bKings = new King.Builder()
 			.setBitboard(initBitboard(Color.BLACK))
 			.setColor(Color.BLACK)
@@ -21,8 +20,8 @@ public class King extends Piece{
 			.setBitboard(initBitboard(Color.WHITE))
 			.setColor(Color.WHITE)
 			.setPieceEnum(PieceEnum.WK).build();
-	private boolean qCastle = true;
-	private boolean kCastle = true;
+	private boolean qCastle = false;
+	private boolean kCastle = false;
 	
 	private static class Builder extends Piece.Builder<Builder> {
 		@Override
@@ -42,59 +41,47 @@ public class King extends Piece{
 	@Override
 	public ArrayList<Move> genPseudoMoves(Board board) {
 		ArrayList<Move> moves = new ArrayList<Move>();
-		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
-			
-		long m = BitboardUtils.getKingMask(Long.numberOfLeadingZeros(bitboard));
-			
+		long o = board.getOccupied();
+		int from = Long.numberOfLeadingZeros(bitboard);
+		long m = BitboardUtils.getKingMask(from);
 		long captures = board.getOpponentOccupied(color)&m;
-		long nonCaptures = ~o&m&~board.getWhiteOccupied();
-		this.genCaptures(captures, bitboard, board.getPieces(), moves);
-		this.genNonCaptures(nonCaptures, bitboard, moves);
+		long nonCaptures = ~o&m;
+		this.genCaptures(captures,from, board.getPieces(), moves);
+		this.genNonCaptures(nonCaptures, from, moves);
 		genCastles(board, moves);
 		return moves;
 	}
 	@Override
-	protected void genNonCaptures(long nonCaptures, long piece, ArrayList<Move> moves) {
-		
-		long otherMoves = nonCaptures&(nonCaptures-1);
-		long moveBitboard = nonCaptures&~otherMoves;
-		while(moveBitboard!=0) {
-			moves.add(new KingOrRookNonCapture(this, Long.numberOfLeadingZeros(piece), Long.numberOfLeadingZeros(moveBitboard)));
-			
-			long temp = otherMoves;
-			otherMoves &= otherMoves-1;
-			moveBitboard = temp&~otherMoves;
+	protected void genNonCaptures(long nonCaptures, int from, ArrayList<Move> moves) {
+		while(nonCaptures!=0) {
+			int to = Long.numberOfLeadingZeros(nonCaptures);
+			moves.add(new KingOrRookNonCapture(this, from, to));
+			nonCaptures^=BitboardUtils.SQUARE[to];
 		}
 	}
 	@Override
-	protected void genCaptures(long captures, long piece, Piece[] pieces, ArrayList<Move> moves) {
-		
-		long otherMoves = captures&(captures-1);
-		long moveBitboard = captures&~otherMoves;
-		while(moveBitboard!=0) {
+	protected void genCaptures(long captures, int from, Piece[] pieces, ArrayList<Move> moves) {
+		while(captures!=0) {
+			int to = Long.numberOfLeadingZeros(captures);
+			long capture = BitboardUtils.SQUARE[to];
 			for(Piece p: pieces) {
-				if(p.getColor()!=this.color && 0!=(p.getBitboard()&moveBitboard)) {
-					moves.add(new KingOrRookCapture(this, Long.numberOfLeadingZeros(piece), Long.numberOfLeadingZeros(moveBitboard), p));
-					Move.numCaptures++;
+				if(p.getColor()!=this.color && 0!=(p.getBitboard()&capture)) {
+					moves.add(new KingOrRookCapture(this, from, to, p));
 				}
 			}
-			
-			long temp = otherMoves;
-			otherMoves &= otherMoves-1;
-			moveBitboard = temp&~otherMoves;
+			captures^=capture;
 		}
 	}
 	
 	private void genCastles(Board board, ArrayList<Move> moves){
 		long attacks = board.getOpponentAttackSet(color);
 		long o = board.getOccupied()&~bitboard;
-		long dir = color.getDirection();
-		if(Rook.getRooks(color).getBitboard()==BitboardUtils.SQUARE[35+color.getDirection()*28]&&kCastle&&((o|attacks)&(7L<<29+dir*28))==0) {
+		int dir = color.getDirection();
+		if(kCastle&&((o|attacks)&(7L<<29+dir*28))==0) {
 			moves.add(new CastleKingside(this));
-			castleCount++;
-		} else if(Rook.getRooks(color).getBitboard()==BitboardUtils.SQUARE[28+color.getDirection()*28]&&qCastle&&((o|attacks)&(15L<<31+dir*28))==0) {
+		}
+		if((o&(15L<<31+dir*28))==0&&qCastle&&(attacks&(7L<<31+dir*28))==0) {
 			moves.add(new CastleQueenside(this));
-			castleCount++;
 		}
 	}
 	

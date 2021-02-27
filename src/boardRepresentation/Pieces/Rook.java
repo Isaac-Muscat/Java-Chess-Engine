@@ -37,58 +37,47 @@ public class Rook extends Piece{
 	@Override
 	public ArrayList<Move> genPseudoMoves(Board board) {
 		ArrayList<Move> moves = new ArrayList<Move>();
-		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
-		long rook = bitboard&~nextPieces;			//Bitboard of selected rook
-		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
-		while(rook!=0) {							//Basically loops over every rook (one color)
-			
-			long m = BitboardUtils.getRankMask(Long.numberOfTrailingZeros(rook));
+		long rooks = bitboard;
+		long o = board.getOccupied();
+		while(rooks!=0) {
+			int from = Long.numberOfLeadingZeros(rooks);
+			long rook = BitboardUtils.SQUARE[from];
+			long m = BitboardUtils.getRankMask(from);
 			long movesBitboard = m&(((o&m)-2*rook) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(rook)));
-			m = BitboardUtils.getFileMask(Long.numberOfLeadingZeros(rook));
+			
+			m = BitboardUtils.getFileMask(from);
 			movesBitboard |= m&(((o&m)-2*rook) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(rook)));
 			
 			long captures = board.getOpponentOccupied(color)&movesBitboard;
-			long nonCaptures = ~board.getOccupied()&movesBitboard;
-			genCaptures(captures, rook, board.getPieces(), moves);
-			genNonCaptures(nonCaptures, rook, moves);
+			long nonCaptures = ~o&movesBitboard;
+			genCaptures(captures, from, board.getPieces(), moves);
+			genNonCaptures(nonCaptures, from, moves);
 			
-			long temp = nextPieces;
-			nextPieces &= nextPieces-1;
-			rook = temp&~nextPieces;
+			rooks^= rook;
 		}
 		
 		return moves;
 	}
 	
 	@Override
-	protected void genNonCaptures(long nonCaptures, long piece, ArrayList<Move> moves) {
-		
-		long otherMoves = nonCaptures&(nonCaptures-1);
-		long moveBitboard = nonCaptures&~otherMoves;
-		while(moveBitboard!=0) {
-			moves.add(new KingOrRookNonCapture(this, Long.numberOfLeadingZeros(piece), Long.numberOfLeadingZeros(moveBitboard)));
-			
-			long temp = otherMoves;
-			otherMoves &= otherMoves-1;
-			moveBitboard = temp&~otherMoves;
+	protected void genNonCaptures(long nonCaptures, int from, ArrayList<Move> moves) {
+		while(nonCaptures!=0) {
+			int to = Long.numberOfLeadingZeros(nonCaptures);
+			moves.add(new KingOrRookNonCapture(this, from, to));
+			nonCaptures^= BitboardUtils.SQUARE[to];
 		}
 	}
 	@Override
-	protected void genCaptures(long captures, long piece, Piece[] pieces, ArrayList<Move> moves) {
-		
-		long otherMoves = captures&(captures-1);
-		long moveBitboard = captures&~otherMoves;
-		while(moveBitboard!=0) {
+	protected void genCaptures(long captures, int from, Piece[] pieces, ArrayList<Move> moves) {
+		while(captures!=0) {
+			int to = Long.numberOfLeadingZeros(captures);
+			long capture = BitboardUtils.SQUARE[to];
 			for(Piece p: pieces) {
-				if(p.getColor()!=this.color && 0!=(p.getBitboard()&moveBitboard)) {
-					moves.add(new KingOrRookCapture(this, Long.numberOfLeadingZeros(piece), Long.numberOfLeadingZeros(moveBitboard), p));
-					Move.numCaptures++;
+				if(p.getColor()!=this.color && 0!=(p.getBitboard()&capture)) {
+					moves.add(new KingOrRookCapture(this, from, to, p));
 				}
 			}
-			
-			long temp = otherMoves;
-			otherMoves &= otherMoves-1;
-			moveBitboard = temp&~otherMoves;
+			captures^=capture;
 		}
 	}
 	
@@ -113,20 +102,17 @@ public class Rook extends Piece{
 	@Override
 	public long genAttackSet(Board board) {
 		long movesBitboard = 0;
-		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
-		long rook = bitboard&~nextPieces;			//Bitboard of selected rook
-		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
-		while(rook!=0) {							//Basically loops over every rook (one color)
-			
-			long m = BitboardUtils.getRankMask(Long.numberOfTrailingZeros(rook));
+		long rooks = bitboard;
+		long o = board.getOccupied();
+		while(rooks!=0) {
+			int from = Long.numberOfLeadingZeros(rooks);
+			long rook = BitboardUtils.SQUARE[from];
+			long m = BitboardUtils.getRankMask(from);
 			movesBitboard |= m&(((o&m)-2*rook) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(rook)));
-			m = BitboardUtils.getFileMask(Long.numberOfLeadingZeros(rook));
+			m = BitboardUtils.getFileMask(from);
 			movesBitboard |= m&(((o&m)-2*rook) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(rook)));
 			
-			
-			long temp = nextPieces;
-			nextPieces &= nextPieces-1;
-			rook = temp&~nextPieces;
+			rooks^=rook;
 		}
 		return movesBitboard;
 	}

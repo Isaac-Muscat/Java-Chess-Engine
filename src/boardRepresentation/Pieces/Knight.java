@@ -35,21 +35,17 @@ public class Knight extends Piece{
 	@Override
 	public ArrayList<Move> genPseudoMoves(Board board) {
 		ArrayList<Move> moves = new ArrayList<Move>();
-		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
-		long knight = bitboard&~nextPieces;			//Bitboard of selected knight
-		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
-		while(knight!=0) {							//Basically loops over every knight (one color)
-			
-			long m = BitboardUtils.getKnightMask(Long.numberOfLeadingZeros(knight));
-			
+		long knights = bitboard;
+		long o = board.getOccupied();
+		while(knights!=0) {
+			int from = Long.numberOfLeadingZeros(knights);
+			long knight = BitboardUtils.SQUARE[from];
+			long m = BitboardUtils.getKnightMask(from);
 			long captures = board.getOpponentOccupied(color)&m;
-			long nonCaptures = ~o&m&~board.getWhiteOccupied();
-			genCaptures(captures, knight, board.getPieces(), moves);
-			genNonCaptures(nonCaptures, knight, moves);
-			
-			long temp = nextPieces;
-			nextPieces &= nextPieces-1;
-			knight = temp&~nextPieces;
+			long nonCaptures = ~o&m;
+			genCaptures(captures, from, board.getPieces(), moves);
+			genNonCaptures(nonCaptures, from, moves);
+			knights^= knight;
 		}
 		
 		return moves;
@@ -75,15 +71,10 @@ public class Knight extends Piece{
 	@Override
 	public long genAttackSet(Board board) {
 		long movesBitboard = 0;
-		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
-		long knight = bitboard&~nextPieces;			//Bitboard of selected knight
-		while(knight!=0) {							//Basically loops over every knight (one color)
-			
-			movesBitboard |= BitboardUtils.getKnightMask(Long.numberOfLeadingZeros(knight));
-			
-			long temp = nextPieces;
-			nextPieces &= nextPieces-1;
-			knight = temp&~nextPieces;
+		long knights = bitboard;
+		while(knights!=0) {
+			movesBitboard |= BitboardUtils.getKnightMask(Long.numberOfLeadingZeros(knights));
+			knights^=BitboardUtils.SQUARE[Long.numberOfLeadingZeros(knights)];
 		}
 		return movesBitboard;
 	}

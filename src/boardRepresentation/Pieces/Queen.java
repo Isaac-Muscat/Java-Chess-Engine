@@ -35,31 +35,29 @@ public class Queen extends Piece{
 	@Override
 	public ArrayList<Move> genPseudoMoves(Board board) {
 		ArrayList<Move> moves = new ArrayList<Move>();
-		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
-		long queen = bitboard&~nextPieces;			//Bitboard of selected queen
-		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
-		while(queen!=0) {							//Basically loops over every queen (one color)
-			
-			long m = BitboardUtils.getDiagonalMask(Long.numberOfLeadingZeros(queen));
+		long queens = bitboard;
+		long o = board.getOccupied();
+		while(queens!=0) {
+			int from = Long.numberOfLeadingZeros(queens);
+			long queen = BitboardUtils.SQUARE[from];
+			long m = BitboardUtils.getDiagonalMask(from);
 			long movesBitboard = m&(((o&m)-2*queen) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(queen)));
 			
-			m = BitboardUtils.getAntiDiagonalMask(Long.numberOfLeadingZeros(queen));
+			m = BitboardUtils.getAntiDiagonalMask(from);
 			movesBitboard |= m&(((o&m)-2*queen) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(queen)));
 			
-			m = BitboardUtils.getRankMask(Long.numberOfTrailingZeros(queen));
+			m = BitboardUtils.getRankMask(from);
 			movesBitboard |= m&(((o&m)-2*queen) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(queen)));
 			
-			m = BitboardUtils.getFileMask(Long.numberOfLeadingZeros(queen));
+			m = BitboardUtils.getFileMask(from);
 			movesBitboard |= m&(((o&m)-2*queen) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(queen)));
 			
 			long captures = board.getOpponentOccupied(color)&movesBitboard;
-			long nonCaptures = ~board.getOccupied()&movesBitboard;
+			long nonCaptures = ~o&movesBitboard;
 			genCaptures(captures, queen, board.getPieces(), moves);
 			genNonCaptures(nonCaptures, queen, moves);
 			
-			long temp = nextPieces;
-			nextPieces &= nextPieces-1;
-			queen = temp&~nextPieces;
+			queens^=queen;
 		}
 		
 		return moves;
@@ -85,27 +83,25 @@ public class Queen extends Piece{
 	@Override
 	public long genAttackSet(Board board) {
 		long movesBitboard = 0;
-		long nextPieces = bitboard&(bitboard-1); 	//Bitboard without next piece
-		long queen = bitboard&~nextPieces;			//Bitboard of selected queen
-		long o = bitboard|board.getOccupied();		//Bitboard of occupied squares
-		while(queen!=0) {							//Basically loops over every queen (one color)
-			
-			long m = BitboardUtils.getDiagonalMask(Long.numberOfLeadingZeros(queen));
+		long queens = bitboard;
+		long o = board.getOccupied();
+		while(queens!=0) {
+			int from = Long.numberOfLeadingZeros(queens);
+			long queen = BitboardUtils.SQUARE[from];
+			long m = BitboardUtils.getDiagonalMask(from);
 			movesBitboard |= m&(((o&m)-2*queen) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(queen)));
 			
-			m = BitboardUtils.getAntiDiagonalMask(Long.numberOfLeadingZeros(queen));
+			m = BitboardUtils.getAntiDiagonalMask(from);
 			movesBitboard |= m&(((o&m)-2*queen) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(queen)));
 			
-			m = BitboardUtils.getRankMask(Long.numberOfTrailingZeros(queen));
+			m = BitboardUtils.getRankMask(from);
 			movesBitboard |= m&(((o&m)-2*queen) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(queen)));
 			
-			m = BitboardUtils.getFileMask(Long.numberOfLeadingZeros(queen));
+			m = BitboardUtils.getFileMask(from);
 			movesBitboard |= m&(((o&m)-2*queen) ^ Long.reverse(Long.reverse(o&m)- 2*Long.reverse(queen)));
 			
 			
-			long temp = nextPieces;
-			nextPieces &= nextPieces-1;
-			queen = temp&~nextPieces;
+			queens^=queen;
 		}
 		return movesBitboard;
 	}

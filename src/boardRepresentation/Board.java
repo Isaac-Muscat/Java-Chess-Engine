@@ -1,13 +1,11 @@
 package boardRepresentation;
 
-import boardRepresentation.Pieces.PieceEnum;
 import utilities.BitboardUtils;
 import utilities.File;
 
 import java.util.ArrayList;
 
 import boardRepresentation.Moves.Move;
-import boardRepresentation.Moves.NonCapture;
 import boardRepresentation.Pieces.*;
 
 public class Board {
@@ -21,11 +19,12 @@ public class Board {
 		private long blackOccupied=0;
 		private long whiteOccupied=0;
 		private long occupied=0;
+		private File enPassantFile = null;
 		private Color sideToMove = Color.WHITE;
 		
 		public Builder() {
 		}
-		public Builder init() {
+		public Builder init(String fen) {
 			Piece[] pieces = new Piece[PieceEnum.values().length];
 			pieces[PieceEnum.BK.getIndex()] = King.getKings(Color.BLACK);
 			pieces[PieceEnum.WK.getIndex()] = King.getKings(Color.WHITE);
@@ -41,6 +40,49 @@ public class Board {
 			pieces[PieceEnum.WP.getIndex()] = Pawn.getPawns(Color.WHITE);
 			this.pieces = pieces;
 			for(Piece piece: pieces) {
+				piece.setBitboard(0L);
+			}
+			String[] attributes = fen.split(" ");
+			String[] ranks = attributes[0].split("/");
+			for(int rank = 0;rank<ranks.length;rank++) {
+				int file = 0;
+				for(int i = 0; i<ranks[rank].length();i++) {
+					PieceEnum selected = PieceEnum.getPieceByString(Character.toString(ranks[rank].charAt(i)));
+					if(selected!=null) {
+						Piece piece = pieces[selected.getIndex()];
+						long bitboard = piece.getBitboard();
+						piece.setBitboard(bitboard|(BitboardUtils.SQUARE[rank*8+file]));
+						file++;
+					} else {
+						file += Character.getNumericValue(ranks[rank].charAt(i));
+					}
+				}
+				
+			}
+			if(attributes[1].equals("b")) {
+				this.sideToMove = Color.BLACK;
+			}
+			
+			for(int i = 0;i<attributes[2].length();i++) {
+				if(attributes[2].charAt(i) == 'K') {
+					King.getKings(Color.WHITE).setCastleKingside(true);
+				}
+				if(attributes[2].charAt(i) == 'Q') {
+					King.getKings(Color.WHITE).setCastleQueenside(true);
+				}
+				if(attributes[2].charAt(i) == 'k') {
+					King.getKings(Color.BLACK).setCastleKingside(true);
+				}
+				if(attributes[2].charAt(i) == 'q') {
+					King.getKings(Color.BLACK).setCastleQueenside(true);
+				}
+			}
+			
+			if(attributes[3]!="-") {
+				enPassantFile = File.getFileFromString(Character.toString(attributes[3].charAt(0)));
+			}
+			
+			for(Piece piece: pieces) {
 				if(piece.getColor()==Color.WHITE) {
 					this.whiteOccupied |= piece.getBitboard();
 				} else {
@@ -50,6 +92,7 @@ public class Board {
 			this.occupied = blackOccupied | whiteOccupied;
 			return this;
 		}
+		
 		public Board build(){
 			return new Board(this);
 		}
@@ -57,6 +100,7 @@ public class Board {
 	private Board(Builder builder) {
 		pieces = builder.pieces;
 		sideToMove = builder.sideToMove;
+		enPassantFile = builder.enPassantFile;
 		whiteOccupied = builder.whiteOccupied;
 		blackOccupied = builder.blackOccupied;
 		occupied = builder.occupied;
@@ -191,14 +235,22 @@ public class Board {
 			}
 			System.out.print(board[i]);
 		}
+		System.out.print("\n");
 		if(verbose) {
 			System.out.println("Side To Move: " + sideToMove);
 			System.out.println("En Passant File: " + enPassantFile);
-			System.out.println("White kCastle: ks - " + King.getKings(Color.WHITE).getCastleKingside());
-			System.out.println("White qCastle: ks - " + King.getKings(Color.WHITE).getCastleQueenside());
-			System.out.println("Black kCastle: ks - " + King.getKings(Color.BLACK).getCastleKingside());
-			System.out.println("Black qCastle: ks - " + King.getKings(Color.BLACK).getCastleQueenside());
+			System.out.println("White kCastle: " + King.getKings(Color.WHITE).getCastleKingside());
+			System.out.println("White qCastle: " + King.getKings(Color.WHITE).getCastleQueenside());
+			System.out.println("Black kCastle: " + King.getKings(Color.BLACK).getCastleKingside());
+			System.out.println("Black qCastle: " + King.getKings(Color.BLACK).getCastleQueenside());
 		}
+	}
+	
+	public boolean validate() {
+		if(Long.bitCount(King.getKings(Color.WHITE).getBitboard())==1&&Long.bitCount(King.getKings(Color.BLACK).getBitboard())==1) {
+			return true;
+		}
+		return false;
 	}
 
 	public void setEP(File file) {
