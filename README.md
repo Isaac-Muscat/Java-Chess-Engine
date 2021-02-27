@@ -11,4 +11,4 @@ I have always enjoyed the game of chess and been amazed by the power of computer
 
 ## Move Generation
 * "Move" is extended by different types of moves
-* Object Creation: new Move(pieceToBeMoved, startingPosition, endingPosition, pieceToBeCaptured
+* Object Creation: new Move(pieceToBeMoved, startingPosition, endingPosition, pieceToBeCaptured)
