@@ -1,5 +1,5 @@
 # Java-Chess-Engine
-I have always enjoyed the game of chess and been amazed by the power of computers, so I decided to create a work-in-progress chess engine in java using guidlines from the [Chessprogrmming Wiki](https://www.chessprogramming.org/Main_Page "Title"). Currently, the move generation is completely debugged using the perft algorithm (it was worth it). The average perft speed using complicated positions is around 3 million moves/second on my Macbook Air (CPU: 1.8 GHz Dual-Core Intel Core i5, RAM: 8 GB 1600 MHz DDR3).
+I have always enjoyed the game of chess and been amazed by the power of computers, so I decided to create a work-in-progress chess engine in java using guidlines from the [Chessprogrmming Wiki](https://www.chessprogramming.org/Main_Page "Title"). Currently, it uses "Negamax" and searches up to a ply of 4 in a second consistently. You can also play against it (Only as white). The move generation is completely debugged using the perft algorithm (it was worth it). The average perft speed using complicated positions is around 3 million moves/second on my Macbook Air (CPU: 1.8 GHz Dual-Core Intel Core i5, RAM: 8 GB 1600 MHz DDR3).
 
 ## Board Representation
 * Uses bitboards stored in a Java long to store positions of a certain piece type
@@ -12,3 +12,6 @@ I have always enjoyed the game of chess and been amazed by the power of computer
 ## Move Generation
 * "Move" is extended by different types of moves
 * Object Creation: new Move(pieceToBeMoved, startingPosition, endingPosition, pieceToBeCaptured)
+
+## GUI
+Currently the gui is in its infancy and there are many more features I would like to add to it to make it more enjoyable.
