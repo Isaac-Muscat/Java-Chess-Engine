@@ -7,20 +7,33 @@ import java.util.*;
 import boardRepresentation.Board;
 import boardRepresentation.Color;
 import boardRepresentation.Moves.*;
-import boardRepresentation.Pieces.Bishop;
 import boardRepresentation.Pieces.*;
-import boardRepresentation.Pieces.PieceEnum;
 import evaluation.Evaluation;
+import gui.GraphicUserInterface;
 import search.Search;
 
 public class Main {
-
+	public static boolean RUN = false;
+	public static Color playerColor;
+	public static volatile Color sideToMove;
 	public static void main(String[] args) {
-		
-		Board board = new Board.Builder().init("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ").build();
-		board.print(true);
-		HashMap<Move, Integer> moves = Search.negaMaxRoot(board, 4);
-		Move bestMove = Search.getBestMove(moves);
-		System.out.println(bestMove.getInfo() + " " + moves.get(bestMove));
+		Board board = new Board.Builder().init("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -").build();
+		sideToMove = board.getSideToMove();
+		playerColor = Color.WHITE;
+		GraphicUserInterface gui = new GraphicUserInterface(board);
+		while(RUN) {
+			if(sideToMove!=playerColor) {
+				HashMap<Move, Integer> moves = Search.negaMaxRoot(board, 4);
+				Move bestMove = Search.getBestMove(moves);
+				bestMove.makeMove(board);
+				board.updateSideToMove();
+				for(Piece piece: board.getPieces()) {
+					gui.pieces[piece.getPieceEnum().getIndex()] = piece.getBitboard();
+				}
+				sideToMove = playerColor;
+				gui.repaint();
+			}
+		}
 	}
+	
 }

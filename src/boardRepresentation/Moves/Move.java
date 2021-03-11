@@ -27,4 +27,11 @@ public abstract class Move {
 		info += "endPos: " + endPos +"\n";
 		return info;
 	}
+	
+	public int getFrom() {
+		return startPos;
+	}
+	public int getTo() {
+		return endPos;
+	}
 }

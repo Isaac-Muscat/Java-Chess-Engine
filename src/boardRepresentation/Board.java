@@ -113,11 +113,7 @@ public class Board {
 		return false;
 	}
 	
-	/*
-	 * ArrayList<Move> moves should be list of legal moves for current sideToMove
-	 */
-	public BoardState getBoardState(ArrayList<Move> moves) {
-		int size = moves.size();
+	public BoardState getBoardState(int size) {
 		if(size==0) {
 			if(isInCheck()) {
 				return sideToMove.inCheckMate();

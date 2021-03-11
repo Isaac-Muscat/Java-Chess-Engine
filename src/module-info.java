@@ -6,4 +6,5 @@
  *
  */
 module bitboardChessEngine {
+	requires java.desktop;
 }
