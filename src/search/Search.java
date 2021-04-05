@@ -27,45 +27,42 @@ public class Search {
 		    }
 		}
 		Collections.shuffle(bestMoves);
-		System.out.println(bestMoves.size());
 		return bestMoves.get(0);
 	}
 	
-	public static int negaMax(Board board, int depth) {
+	public static int negaMax(Board board, int depth, int alpha, int beta) {
 		if(depth == 0) {
 			return Evaluation.evaluate(board);
 		}
 		int max = -1000000000;
 		ArrayList<Move> moves = board.generateLegalMoves();
-		switch(board.getBoardState(moves.size())) {
-		case STALEMATE:
-			return 0;
-		case BLACK_IN_CHECKMATE:
-			return 1000000000;
-		case WHITE_IN_CHECKMATE:
-			return 1000000000;
-		default:
-			break;
-		}
+		if(moves.size()==0) return Evaluation.terminal_evaluate(board);
+		
 		for(Move m: moves) {
 			m.makeMove(board);
 			board.updateSideToMove();
-			int score = -negaMax(board, depth-1);
+			int score = -negaMax(board, depth-1, -beta, -alpha);
 			if(score>max) max = score;
+			if(score>alpha)alpha=score;
 			m.unmakeMove(board);
 			board.updateSideToMove();
+			if(alpha>=beta)return alpha;
 		}
 		return max;
 	}
 	
 	public static HashMap<Move, Integer> negaMaxRoot(Board board, int depth){
+		int alpha = -1000000000;
+		int beta = 1000000000;
 		HashMap<Move, Integer> moves = new HashMap<Move, Integer>();
 		for(Move m: board.generateLegalMoves()) {
 			m.makeMove(board);
 			board.updateSideToMove();
-			int score = -negaMax(board, depth-1);
+			int score = -negaMax(board, depth-1, -beta, -alpha);
+			//System.out.println(m.getInfo());
+			//System.out.println(score);
+			if(score>alpha)alpha= -score;
 			moves.put(m, score);
-			//System.out.println(m.getInfo() + " " + moves.get(m));
 			m.unmakeMove(board);
 			board.updateSideToMove();
 		}

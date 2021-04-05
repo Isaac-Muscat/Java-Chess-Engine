@@ -67,12 +67,15 @@ public class GraphicUserInterface extends JPanel implements MouseListener, Mouse
 		}
 		for(int i = 0;i<12;i++) {
 			if(selectedPiece!=null&&i==selectedPiece.getPieceEnum().getIndex()) {
-				g.drawImage(getSprite(selectedPiece.getPieceEnum().getIndex()), this.mouseX-SCALE/2, this.mouseY-SCALE/2, SCALE, SCALE, null);
-				drawPieces(g, pieces[i]&~selectedPieceBitboard, getSprite(i));
 			} else {
 				drawPieces(g, pieces[i], getSprite(i));
 			}
-			
+		}
+		for(int i = 0;i<12;i++) {
+			if(selectedPiece!=null&&i==selectedPiece.getPieceEnum().getIndex()) {
+				g.drawImage(getSprite(selectedPiece.getPieceEnum().getIndex()), this.mouseX-SCALE/2, this.mouseY-SCALE/2, SCALE, SCALE, null);
+				drawPieces(g, pieces[i]&~selectedPieceBitboard, getSprite(i));
+			}
 		}
 	}
 	
