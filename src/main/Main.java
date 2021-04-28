@@ -19,9 +19,9 @@ public class Main {
 	public static void main(String[] args) {
 		Board board = new Board.Builder().init(startPos).build();
 		sideToMove = board.getSideToMove();
-		playerColor = Color.WHITE;
+		playerColor = Color.BLACK;
 		GraphicUserInterface gui = new GraphicUserInterface(board);
-		while(RUN) {      `
+		while(RUN) {
 			if(sideToMove!=playerColor) {
 				HashMap<Move, Integer> moves = Search.negaMaxRoot(board, 4);
 				Move bestMove = Search.getBestMove(moves);

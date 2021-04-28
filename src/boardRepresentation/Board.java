@@ -78,7 +78,7 @@ public class Board {
 				}
 			}
 			
-			if(attributes[3]!="-") {
+			if(!attributes[3].equals("-")) {
 				enPassantFile = File.getFileFromString(Character.toString(attributes[3].charAt(0)));
 			}
 			
@@ -107,10 +107,7 @@ public class Board {
 	}
 	
 	public boolean isInCheck() {
-		if((King.getKings(sideToMove).getBitboard()&getOpponentAttackSet(sideToMove))!=0) {
-			return true;
-		}
-		return false;
+		return (King.getKings(sideToMove).getBitboard() & getOpponentAttackSet(sideToMove)) != 0;
 	}
 	
 	public BoardState getBoardState(int size) {
@@ -125,7 +122,7 @@ public class Board {
 	}
 	
 	public ArrayList<Move> generateLegalMoves(){
-		ArrayList<Move> moves = new ArrayList<Move>();
+		ArrayList<Move> moves = new ArrayList<>();
 		int start = sideToMove.getStartIndex();
 		for(int i = start;i<start+6;i++) {
 			moves.addAll(pieces[i].genLegalMoves(this));
@@ -243,10 +240,7 @@ public class Board {
 	}
 	
 	public boolean validate() {
-		if(Long.bitCount(King.getKings(Color.WHITE).getBitboard())==1&&Long.bitCount(King.getKings(Color.BLACK).getBitboard())==1) {
-			return true;
-		}
-		return false;
+		return Long.bitCount(King.getKings(Color.WHITE).getBitboard()) == 1 && Long.bitCount(King.getKings(Color.BLACK).getBitboard()) == 1;
 	}
 
 	public void setEP(File file) {
