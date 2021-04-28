@@ -10,6 +10,7 @@ import boardRepresentation.Pieces.*;
 import gui.GraphicUserInterface;
 import search.Search;
 
+//Test commit
 public class Main {
 	public static boolean RUN = false;
 	public static Color playerColor;
