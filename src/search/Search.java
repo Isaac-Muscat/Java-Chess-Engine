@@ -3,7 +3,6 @@ package search;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Random;
 
 import boardRepresentation.Board;
 import boardRepresentation.Moves.*;
@@ -59,9 +58,6 @@ public class Search {
 			m.makeMove(board);
 			board.updateSideToMove();
 			int score = -negaMax(board, depth-1, -beta, -alpha);
-			//System.out.println(m.getInfo());
-			//System.out.println(score);
-			if(score>alpha)alpha= -score;
 			moves.put(m, score);
 			m.unmakeMove(board);
 			board.updateSideToMove();

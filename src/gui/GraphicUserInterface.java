@@ -8,9 +8,7 @@ import boardRepresentation.Board;
 import boardRepresentation.Moves.CastleKingside;
 import boardRepresentation.Moves.CastleQueenside;
 import boardRepresentation.Moves.Move;
-import boardRepresentation.*;
 import boardRepresentation.Pieces.*;
-import search.Search;
 import utilities.BitboardUtils;
 import main.Main;
 
@@ -21,7 +19,6 @@ import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.awt.event.MouseEvent;
 
 @SuppressWarnings("serial")
@@ -37,24 +34,34 @@ public class GraphicUserInterface extends JPanel implements MouseListener, Mouse
 	private Board board;
 	
 	public GraphicUserInterface(Board board) {
-		this.board = board;
-		for(Piece piece: board.getPieces()) {
-			pieces[piece.getPieceEnum().getIndex()] = piece.getBitboard();
-		}
 		try {
-			img = ImageIO.read(new File("src/gui/Chess_Pieces.png"));
+			img = ImageIO.read(this.getClass().getResource("images/Chess_Pieces.png"));
 		} catch(IOException e) {System.out.println("Bad path for sprite");}
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		JFrame frame = new JFrame("Chess");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
 		frame.add(this);
 		frame.setResizable(false);
 		frame.pack();
 		frame.setSize(WIDTH, HEIGHT);
 		frame.setVisible(true);
+		startGame(board);
+	}
+	
+	private void startGame(Board board) {
+		this.board = board;
+		for(Piece piece: board.getPieces()) {
+			if(Main.playerColor==boardRepresentation.Color.BLACK) {
+				pieces[piece.getPieceEnum().getIndex()] = Long.reverse(piece.getBitboard());
+				continue;
+			}
+			pieces[piece.getPieceEnum().getIndex()] = piece.getBitboard();
+		}
 		Main.RUN=true;
 	}
+	
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -71,11 +78,10 @@ public class GraphicUserInterface extends JPanel implements MouseListener, Mouse
 				drawPieces(g, pieces[i], getSprite(i));
 			}
 		}
-		for(int i = 0;i<12;i++) {
-			if(selectedPiece!=null&&i==selectedPiece.getPieceEnum().getIndex()) {
-				g.drawImage(getSprite(selectedPiece.getPieceEnum().getIndex()), this.mouseX-SCALE/2, this.mouseY-SCALE/2, SCALE, SCALE, null);
-				drawPieces(g, pieces[i]&~selectedPieceBitboard, getSprite(i));
-			}
+		if(selectedPiece!=null) {
+			int i = selectedPiece.getPieceEnum().getIndex();
+			g.drawImage(getSprite(selectedPiece.getPieceEnum().getIndex()), this.mouseX-SCALE/2, this.mouseY-SCALE/2, SCALE, SCALE, null);
+			drawPieces(g, pieces[i]&~Long.reverse(selectedPieceBitboard), getSprite(i));
 		}
 	}
 	
@@ -121,11 +127,14 @@ public class GraphicUserInterface extends JPanel implements MouseListener, Mouse
 	
 	@Override
 	public void mousePressed(MouseEvent e) {
-		if(Main.sideToMove==Main.playerColor) {
+		if(Main.RUN&&Main.sideToMove==Main.playerColor) {
 			this.mouseX = e.getX();
 			this.mouseY = e.getY();
 			int target = mouseX/SCALE + (mouseY/SCALE)*8;
 			long from = BitboardUtils.SQUARE[target];
+			if(Main.playerColor == boardRepresentation.Color.BLACK) {
+				from = Long.reverse(from);
+			}
 			for(Piece piece: board.getPieces()) {
 				if(piece.getColor()==Main.playerColor&&(from&piece.getBitboard())!=0) {
 					selectedPieceBitboard = piece.getBitboard()&from;
@@ -137,32 +146,43 @@ public class GraphicUserInterface extends JPanel implements MouseListener, Mouse
 	}
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		this.mouseX = e.getX();
-		this.mouseY = e.getY();
-		repaint();
+		if(Main.RUN) {
+			this.mouseX = e.getX();
+			this.mouseY = e.getY();
+			repaint();
+		}
 		
 	}
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		if(selectedPiece!=null&&Main.sideToMove==Main.playerColor) {
-			int to = mouseX/SCALE + (mouseY/SCALE)*8;
-			int from = Long.numberOfLeadingZeros(selectedPieceBitboard);
-			for(Move move: board.generateLegalMoves()) {
-				if(move.getFrom()==from&&move.getTo()==to||((to-from)==2&&move instanceof CastleKingside)
-						||((to-from)==-2&&move instanceof CastleQueenside)) {
-					move.makeMove(board);
-					for(Piece piece: board.getPieces()) {
-						pieces[piece.getPieceEnum().getIndex()] = piece.getBitboard();
-					}
-					board.updateSideToMove();
-					Main.sideToMove = Main.playerColor.getOther();
-					selectedPiece = null;
-					break;
+		if(Main.RUN) {
+			if(selectedPiece!=null&&Main.sideToMove==Main.playerColor) {
+				int to = mouseX/SCALE + (mouseY/SCALE)*8;
+				if(Main.playerColor == boardRepresentation.Color.BLACK) {
+					to = 63-to;
 				}
+				int from = Long.numberOfLeadingZeros(selectedPieceBitboard);
+				for(Move move: board.generateLegalMoves()) {
+					if(move.getFrom()==from&&move.getTo()==to||((to-from)==2&&move instanceof CastleKingside)
+							||((to-from)==-2&&move instanceof CastleQueenside)) {
+						move.makeMove(board);
+						for(Piece piece: board.getPieces()) {
+							if(Main.playerColor==boardRepresentation.Color.BLACK) {
+								pieces[piece.getPieceEnum().getIndex()] = Long.reverse(piece.getBitboard());
+								continue;
+							}
+							pieces[piece.getPieceEnum().getIndex()] = piece.getBitboard();
+						}
+						board.updateSideToMove();
+						Main.sideToMove = Main.playerColor.getOther();
+						selectedPiece = null;
+						break;
+					}
+				}
+				selectedPiece = null;
 			}
-			selectedPiece = null;
+			repaint();
 		}
-		repaint();
 	}
 	@Override
 	public void mouseMoved(MouseEvent e) {
